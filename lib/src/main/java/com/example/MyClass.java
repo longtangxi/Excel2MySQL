@@ -25,17 +25,19 @@ import java.util.TreeMap;
 
 public class MyClass {
 
+    //feature-1
     static XSSFRow row;
-    //ÓÃÓÚ¸ñÊ½»¯ÈÕÆÚ
+    //ç”¨äºæ ¼å¼åŒ–æ—¥æœŸ
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    //´æ´¢ÈÕÆÚ-µãºÅ-±äĞÎÁ¿
+    //å­˜å‚¨æ—¥æœŸ-ç‚¹å·-å˜å½¢é‡
     static TreeMap<Date, TreeMap<Integer, Double>> mData = new TreeMap<>();
 
 
     public static void main(String[] args) {
-        System.out.println(System.getProperty("user.dir"));//user.dirÖ¸¶¨ÁËµ±Ç°µÄÂ·¾¶
+        System.out.println(System.getProperty("user.dir"));//user.diræŒ‡å®šäº†å½“å‰çš„è·¯å¾„
         String filename = System.getProperty("user.dir") + "\\lib\\src\\main\\java\\com\\example\\a.xlsx";
         System.out.println(System.getProperty("file.encoding"));
+        System.out.println("ä½ å¥½");
 
 //        System.out.println(filePath.endsWith(".xls"));
 //        System.exit(0);
@@ -47,14 +49,14 @@ public class MyClass {
             } else if (filename.endsWith(".xls")) {
 
             } else {
-                throw new Exception("ÎÄ¼ş±ØĞëÒÔxls»òÕßxlsx½áÎ²");
+                throw new Exception("æ–‡ä»¶å¿…é¡»ä»¥xlsæˆ–è€…xlsxç»“å°¾");
             }
-            //¹¹½¨Ò»¸ö¸ß°æ±¾µÄEXCEL
+            //æ„å»ºä¸€ä¸ªé«˜ç‰ˆæœ¬çš„EXCEL
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
-            //»ñÈ¡Ö¸¶¨µÄsheet
+            //è·å–æŒ‡å®šçš„sheet
             XSSFSheet sheet = (XSSFSheet) getSheet(workbook, "");
             if (sheet == null) {
-                throw new Exception("Ã»ÓĞÕÒµ½Ö¸¶¨µÄ¹¤×÷±í");
+                throw new Exception("æ²¡æœ‰æ‰¾åˆ°æŒ‡å®šçš„å·¥ä½œè¡¨");
             }
             doSomething(sheet);
         } catch (FileNotFoundException e1) {
@@ -72,13 +74,13 @@ public class MyClass {
             System.out.println(sdf.format(date) + "  " + data + "  size:" + data.size());
 //            while (itt.hasNext()) {
 //                Integer dott = (Integer) itt.next();
-//                System.out.println("ÈÕÆÚ:" + sdf.format(date) + "  µãºÅ:" + dott + "  ¸ß³Ì:");
+//                System.out.println("æ—¥æœŸ:" + sdf.format(date) + "  ç‚¹å·:" + dott + "  é«˜ç¨‹:");
 //            }
         }
     }
 
     /**
-     * ¸ù¾İÖ¸¶¨¹æÔòµÃµ½Ò»¸ö¹¤×÷±ísheet
+     * æ ¹æ®æŒ‡å®šè§„åˆ™å¾—åˆ°ä¸€ä¸ªå·¥ä½œè¡¨sheet
      *
      * @param workbook
      * @param name
@@ -87,8 +89,8 @@ public class MyClass {
     private static Sheet getSheet(Workbook workbook, String name) {
         int shtNum = workbook.getNumberOfSheets();
         for (int i = 0; i < shtNum; i++) {
-            String shtName = workbook.getSheetAt(i).getSheetName();//¹¤×÷±íÃû
-            if (shtName.matches("\\u4e0b\\u884c\\u8def\\u5824\\u7eb5\\u65ad\\u9762")) {//ÏÂĞĞÂ·µÌ×İ¶ÏÃæ
+            String shtName = workbook.getSheetAt(i).getSheetName();//å·¥ä½œè¡¨å
+            if (shtName.matches("\\u4e0b\\u884c\\u8def\\u5824\\u7eb5\\u65ad\\u9762")) {//ä¸‹è¡Œè·¯å ¤çºµæ–­é¢
                 return workbook.getSheetAt(i);
             }
         }
@@ -96,12 +98,12 @@ public class MyClass {
     }
 
     private static void doSomething(XSSFSheet sheet) {
-        TreeMap<Integer, Date> colDateMap = new TreeMap<>();//ÈÕÆÚMap  <ÁĞºÅ£¬ÈÕÆÚ>
-        TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//¸ß³ÌÁĞºÅ¼°¶ÔÓ¦µÄÈÕÆÚMap  <ÁĞºÅ£¬ÈÕÆÚ>
-        Iterator<Row> iterator = sheet.iterator();//»ñÈ¡ĞĞµÄµü´úÆ÷
+        TreeMap<Integer, Date> colDateMap = new TreeMap<>();//æ—¥æœŸMap  <åˆ—å·ï¼Œæ—¥æœŸ>
+        TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//é«˜ç¨‹åˆ—å·åŠå¯¹åº”çš„æ—¥æœŸMap  <åˆ—å·ï¼Œæ—¥æœŸ>
+        Iterator<Row> iterator = sheet.iterator();//è·å–è¡Œçš„è¿­ä»£å™¨
         while (iterator.hasNext()) {
 
-            row = (XSSFRow) iterator.next();//»ñµÃÄ³ĞĞÊı¾İ
+            row = (XSSFRow) iterator.next();//è·å¾—æŸè¡Œæ•°æ®
 
             Iterator<Cell> cellIterator = row.cellIterator();
 
@@ -119,15 +121,15 @@ public class MyClass {
             while (cellIterator.hasNext()) {
                 cell = cellIterator.next();
                 switch (cell.getCellTypeEnum()) {
-                    case STRING://×Ö·û´®
+                    case STRING://å­—ç¬¦ä¸²
                         String value = cell.getStringCellValue();
-                        boolean isAltitude = value.matches(".*(\\u9ad8).*(\\u7a0b).*");//*¸ß*³Ì* ±ØĞë×ªÎªunicodeÂë£¬·ñÔò²»»áÆ¥Åä³É¹¦
-                        if (isAltitude) {//Èç¹û°üº¬Æ¥Åä"¸ß³Ì",ËµÃ÷¸ÃÁĞÏÂµÄÊı¾İÎª¸ß³ÌÖµ
-                            Iterator it = colDateMap.keySet().iterator();//»ñµÃ´æ´¢ºÃµÄÈÕÆÚËùÔÚÁĞµÄ¼¯ºÏ
+                        boolean isAltitude = value.matches(".*(\\u9ad8).*(\\u7a0b).*");//*é«˜*ç¨‹* å¿…é¡»è½¬ä¸ºunicodeç ï¼Œå¦åˆ™ä¸ä¼šåŒ¹é…æˆåŠŸ
+                        if (isAltitude) {//å¦‚æœåŒ…å«åŒ¹é…"é«˜ç¨‹",è¯´æ˜è¯¥åˆ—ä¸‹çš„æ•°æ®ä¸ºé«˜ç¨‹å€¼
+                            Iterator it = colDateMap.keySet().iterator();//è·å¾—å­˜å‚¨å¥½çš„æ—¥æœŸæ‰€åœ¨åˆ—çš„é›†åˆ
                             while (it.hasNext()) {
                                 Integer dateCol = (Integer) it.next();
-                                if ((cell.getColumnIndex() - dateCol) <= 1) {//Èç¹û¸ÃCellµÄÁĞÔÚÄ³¸öÈÕÆÚËùÔÚÁĞµÄÓÒ²àµÄºÏÀí·¶Î§ÄÚ£¬ÔòÈÏÎªÊÇ¸ÃÈÕÆÚÏÂËù²âµÄ¸ß³ÌÖµ
-                                    altitudesMap.put(cell.getColumnIndex(), colDateMap.get(dateCol));//½«´æ·Å¸ß³ÌÖµµÄÁĞºÅºÍ¶ÔÓ¦µÄÈÕÆÚ´æ´¢ÆğÀ´
+                                if ((cell.getColumnIndex() - dateCol) <= 1) {//å¦‚æœè¯¥Cellçš„åˆ—åœ¨æŸä¸ªæ—¥æœŸæ‰€åœ¨åˆ—çš„å³ä¾§çš„åˆç†èŒƒå›´å†…ï¼Œåˆ™è®¤ä¸ºæ˜¯è¯¥æ—¥æœŸä¸‹æ‰€æµ‹çš„é«˜ç¨‹å€¼
+                                    altitudesMap.put(cell.getColumnIndex(), colDateMap.get(dateCol));//å°†å­˜æ”¾é«˜ç¨‹å€¼çš„åˆ—å·å’Œå¯¹åº”çš„æ—¥æœŸå­˜å‚¨èµ·æ¥
                                     break;
                                 }
                             }
@@ -137,18 +139,18 @@ public class MyClass {
                         break;
                     case _NONE:
                         break;
-                    case NUMERIC://Êı×Ö
-                    /*»ñÈ¡µãºÅ*/
-                    /*»ñÈ¡ÈÕÆÚ*/
+                    case NUMERIC://æ•°å­—
+                    /*è·å–ç‚¹å·*/
+                    /*è·å–æ—¥æœŸ*/
                         Date date = getDateFromCell(cell);
                         if (date != null) {
-                            //¸ÃÈÕÆÚÏÂµÄÁĞºÅ
+                            //è¯¥æ—¥æœŸä¸‹çš„åˆ—å·
                             int column = cell.getColumnIndex();
                             colDateMap.put(column, date);
                         }
-                    /*»ñÈ¡¸ß³ÌÖµ*/
+                    /*è·å–é«˜ç¨‹å€¼*/
                         int columnIndex = cell.getColumnIndex();
-                        //Èç¹û¸ÃÁĞ´ú±í¸ß³ÌÖµ&&µãºÅ²»ÊÇ-1£¬ËµÃ÷¸ÃĞĞµÄµÚÒ»¸öÖµÎªµãºÅ
+                        //å¦‚æœè¯¥åˆ—ä»£è¡¨é«˜ç¨‹å€¼&&ç‚¹å·ä¸æ˜¯-1ï¼Œè¯´æ˜è¯¥è¡Œçš„ç¬¬ä¸€ä¸ªå€¼ä¸ºç‚¹å·
                         if (altitudesMap.keySet().contains(columnIndex) && dot != -1) {
                             double altitude = cell.getNumericCellValue();
                             date = colDateMap.get(columnIndex);
@@ -162,7 +164,7 @@ public class MyClass {
                             }
                         }
                         break;
-                    case FORMULA://¹«Ê½
+                    case FORMULA://å…¬å¼
 //                    keepDateDotData(sheet, cell);
                         break;
                     case BLANK:
@@ -181,15 +183,15 @@ public class MyClass {
 
 
     /**
-     * ¸ù¾İCell·µ»ØµÄDateFormatÖµÅĞ¶¨ÊÇ·ñÎªÈÕÆÚ
+     * æ ¹æ®Cellè¿”å›çš„DateFormatå€¼åˆ¤å®šæ˜¯å¦ä¸ºæ—¥æœŸ
      *
      * @param cell
-     * @return Èç¹û²»ÊÇÈÕÆÚ¸ñÊ½£¬·µ»Ønull
-     * Èç¹ûÊÇ£¬Ôò·µ»ØÕıÈ·µÄÈÕÆÚ¸ñÊ½
+     * @return å¦‚æœä¸æ˜¯æ—¥æœŸæ ¼å¼ï¼Œè¿”å›null
+     * å¦‚æœæ˜¯ï¼Œåˆ™è¿”å›æ­£ç¡®çš„æ—¥æœŸæ ¼å¼
      */
     private static Date getDateFromCell(Cell cell) {
         short format = cell.getCellStyle().getDataFormat();
-        //Ö»ÊÊÓÃÓÚExcel×Ô´øµÄÈÕÆÚ¸ñÊ½£¨Ç°Á½ÖÖ1.2012/1/13  2.2012Äê1ÔÂ13ÈÕ£©
+        //åªé€‚ç”¨äºExcelè‡ªå¸¦çš„æ—¥æœŸæ ¼å¼ï¼ˆå‰ä¸¤ç§1.2012/1/13  2.2012å¹´1æœˆ13æ—¥ï¼‰
         if (DateUtil.isCellDateFormatted(cell) ||
                 format == 57 ||
                 format == 58 ||
@@ -204,11 +206,11 @@ public class MyClass {
     }
 
     /**
-     * ¼ÆËãÁ½¸öÈÕÆÚÖ®¼äÏà²îµÄÌìÊı
+     * è®¡ç®—ä¸¤ä¸ªæ—¥æœŸä¹‹é—´ç›¸å·®çš„å¤©æ•°
      *
-     * @param smdate ½ÏĞ¡µÄÊ±¼ä
-     * @param bdate  ½Ï´óµÄÊ±¼ä
-     * @return Ïà²îÌìÊı
+     * @param smdate è¾ƒå°çš„æ—¶é—´
+     * @param bdate  è¾ƒå¤§çš„æ—¶é—´
+     * @return ç›¸å·®å¤©æ•°
      * @throws ParseException
      */
     public static int daysBetween(Date smdate, Date bdate) throws ParseException {
