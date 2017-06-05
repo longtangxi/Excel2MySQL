@@ -69,7 +69,7 @@ public class MyClass {
         while (it.hasNext()) {
             Date date = (Date) it.next();
             TreeMap<Integer, Double> data = mData.get(date);
-            System.out.println(sdf.format(date)+"  "+data+"  size:"+data.size());
+            System.out.println(sdf.format(date) + "  " + data + "  size:" + data.size());
 //            while (itt.hasNext()) {
 //                Integer dott = (Integer) itt.next();
 //                System.out.println("日期:" + sdf.format(date) + "  点号:" + dott + "  高程:");
@@ -107,10 +107,14 @@ public class MyClass {
 
 //            int rowNum = row.getRowNum();
 //            System.out.println("row:" + rowNum);
-            Cell cell = cellIterator.next();
+
             int dot = -1;
-            if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                dot = (int) cell.getNumericCellValue();
+            Cell cell;
+            if (cellIterator.hasNext()) {
+                cell = cellIterator.next();
+                if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+                    dot = (int) cell.getNumericCellValue();
+                }
             }
             while (cellIterator.hasNext()) {
                 cell = cellIterator.next();
@@ -153,7 +157,7 @@ public class MyClass {
                                 TreeMap<Integer, Double> v = new TreeMap<>();
                                 v.put(dot, altitude);
                                 mData.put(date, v);
-                            }else {
+                            } else {
                                 mData.get(date).put(dot, altitude);
                             }
                         }
@@ -175,91 +179,17 @@ public class MyClass {
     }
 
 
-    /**
-     * ??????????????????????
-     */
-    private static void showResult() {
-//        Iterator it = mData.keySet().iterator();
-//        Date last = null;
-//        List<Double> result = new ArrayList<>();
-//        while (it.hasNext()) {
-//            Date d = (Date) it.next();
-//            if (last != null) {
-//                try {
-//                    //??????????β???????????
-//                    int interval = daysBetween(last, d);
-//                    //???????????????????????
-//                    TreeMap m = mData.get(d);
-//                    Double res = (Double) m.get(dotMax) / interval * 30;
-//                    DecimalFormat df = new DecimalFormat("#.0");
-//                    res = Double.parseDouble(df.format(res));
-//                    int month = Math.round(interval / 30);
-//                    for (int i = 0; i < month; i++) {
-//                        result.add(res);
-//                    }
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            last = d;
-//        }
-//
-//        System.out.println(result);
-    }
 
     /**
-     * @param sheet
-     * @param cell
-     */
-//    private static void keepDateDotData(XSSFSheet sheet, Cell cell) {
-//        int cIndex = cell.getColumnIndex();
-//        System.out.println("col:" + cIndex);
-//        //?????????????α?????????????????
-//        if (mBenci.keySet().contains(cIndex)) {
-//            Double dot = sheet.getRow(row.getRowNum()).getCell(0).getNumericCellValue();
-//            Double val = cell.getNumericCellValue();
-//            if (mData.containsKey(mBenci.get(cIndex))) {
-//                //?????
-//                TreeMap<Double, Double> data = mData.get(mBenci.get(cIndex));
-//                data.put(dot, val);
-//            } else {
-//                TreeMap<Double, Double> data = new TreeMap<>();
-//                data.put(dot, val);
-//                mData.put(mBenci.get(cIndex), data);
-//            }
-//        }
-//        //????б???????????????У?????????????б?????????????
-//        if (cIndex == colMax) {
-//            Double v = sheet.getRow(row.getRowNum()).getCell(colMax).getNumericCellValue();
-//            if (Math.abs(v) > Math.abs(tempMax)) {
-//                tempMax = v;
-//                dotMax = row.getCell(0).getNumericCellValue();
-//            }
-//        }
-//    }
-//
-//    private static void keepColDateAndDate(Cell cell) {
-//        //????????????????????????
-//        if (!(getDateFromCell(cell) == null)) {
-//            //??????????к?
-//            int column = cell.getColumnIndex();
-//            Date date = getDateFromCell(cell);
-//            mDate.put(column, date);
-//            return;
-//        }
-//    }
-
-
-    /**
-     * ????Cell?????DateFormat??ж?????????
+     * 根据Cell返回的DateFormat值判定是否为日期
      *
      * @param cell
-     * @return ???????????????????null
-     * ????????????????????
+     * @return 如果不是日期格式，返回null
+     * 如果是，则返回正确的日期格式
      */
     private static Date getDateFromCell(Cell cell) {
         short format = cell.getCellStyle().getDataFormat();
-        //???????Excel??????????????????1.2012/1/13  2.2012??1??13???
+        //只适用于Excel自带的日期格式（前两种1.2012/1/13  2.2012年1月13日）
         if (DateUtil.isCellDateFormatted(cell) ||
                 format == 57 ||
                 format == 58 ||
@@ -267,18 +197,18 @@ public class MyClass {
 
             double value = cell.getNumericCellValue();
             Date date = DateUtil.getJavaDate(value);
-//            System.out.println(sdf.format(date));
+            System.out.println(sdf.format(date));
             return date;
         }
         return null;
     }
 
     /**
-     * ???????????????????????
+     * 计算两个日期之间相差的天数
      *
-     * @param smdate ??С?????
-     * @param bdate  ???????
-     * @return ???????
+     * @param smdate 较小的时间
+     * @param bdate  较大的时间
+     * @return 相差天数
      * @throws ParseException
      */
     public static int daysBetween(Date smdate, Date bdate) throws ParseException {
@@ -295,5 +225,3 @@ public class MyClass {
         return Integer.parseInt(String.valueOf(between_days));
     }
 }
-
-
