@@ -29,19 +29,18 @@ import java.util.TreeMap;
 
 
 public class MyClass {
-    //测试测试
+
     static XSSFRow row;
-    //用于格式化日期
-    static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
     //存储日期-点号-变形量
     static TreeMap<Date, TreeMap<Integer, Double>> mData = new TreeMap<>();
     private static DBManager mDBManager;
 
 
     public static void main(String[] args) {
-        System.out.println(System.getProperty("user.dir"));//user.dir指定了当前的路径
+//        System.out.println(System.getProperty("user.dir"));//user.dir指定了当前的路径
+//        System.out.println(System.getProperty("file.encoding"));
         String filename = System.getProperty("user.dir") + "\\lib\\src\\main\\java\\com\\example\\a.xlsx";
-        System.out.println(System.getProperty("file.encoding"));
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(new File(filename));
@@ -69,6 +68,10 @@ public class MyClass {
         }
 
         /*存数据库*/
+        storeIntoDB();
+    }
+
+    private static void storeIntoDB() {
         Connection conn = initDB();
 
         try {
@@ -110,20 +113,6 @@ public class MyClass {
                 }
             }
         }
-        //        conn.prepareStatement()
-
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//        Iterator it = mData.keySet().iterator();
-//        while (it.hasNext()) {
-//            Date date = (Date) it.next();
-//            TreeMap<Integer, Double> data = mData.get(date);
-//            System.out.println(sdf.format(date) + "  " + data + "  size:" + data.size());
-//            while (itt.hasNext()) {
-//                Integer dott = (Integer) itt.next();
-//                System.out.println("日期:" + sdf.format(date) + "  点号:" + dott + "  高程:");
-//            }
-//        }
     }
 
 
