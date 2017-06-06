@@ -33,6 +33,9 @@ public class MyClass {
 
 
     public static void main(String[] args) {
+        initDB();
+
+
         System.out.println(System.getProperty("user.dir"));//user.dir指定了当前的路径
         String filename = System.getProperty("user.dir") + "\\lib\\src\\main\\java\\com\\example\\a.xlsx";
         System.out.println(System.getProperty("file.encoding"));
@@ -64,16 +67,40 @@ public class MyClass {
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Iterator it = mData.keySet().iterator();
-        while (it.hasNext()) {
-            Date date = (Date) it.next();
-            TreeMap<Integer, Double> data = mData.get(date);
-            System.out.println(sdf.format(date) + "  " + data + "  size:" + data.size());
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//        Iterator it = mData.keySet().iterator();
+//        while (it.hasNext()) {
+//            Date date = (Date) it.next();
+//            TreeMap<Integer, Double> data = mData.get(date);
+//            System.out.println(sdf.format(date) + "  " + data + "  size:" + data.size());
 //            while (itt.hasNext()) {
 //                Integer dott = (Integer) itt.next();
 //                System.out.println("日期:" + sdf.format(date) + "  点号:" + dott + "  高程:");
 //            }
+//        }
+    }
+
+    private static void initDB() {
+        DBManager dBManager = new DBManager();
+//        String creDB = "CREATE DATABASE IF NOT EXISTS st_work";//创建一个数据库
+//            dBManager.executeSQL(creDB);
+        try {
+            //创建高程表
+            String creTB = "CREATE TABLE IF NOT EXISTS altitude " +
+                    "( id int auto_increment primary key, " +
+                    "dotnum int NOT NULL UNIQUE COMMENT '点号', " +
+                    "altitude decimal(5,5) COMMENT '高程值', " +
+                    "amend_value decimal(5,5) COMMENT '高程修正值'," +
+                    "measure_time int COMMENT '测量时间', " +
+                    "submit_time int COMMENT '提交时间', " +
+                    "create_time int, " +
+                    "update_time int, " +
+                    "initial_point boolean COMMENT '是否为起始参考点' DEFAULT 0," +
+                    "remarks varchar(100) COMMENT '备注');";
+            dBManager.executeSQL(creTB);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -179,7 +206,6 @@ public class MyClass {
     }
 
 
-
     /**
      * 根据Cell返回的DateFormat值判定是否为日期
      *
@@ -197,7 +223,7 @@ public class MyClass {
 
             double value = cell.getNumericCellValue();
             Date date = DateUtil.getJavaDate(value);
-            System.out.println(sdf.format(date));
+//            System.out.println(sdf.format(date));
             return date;
         }
         return null;
