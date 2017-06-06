@@ -1,6 +1,8 @@
 package com.example;
 
 
+import com.example.table.Altitude;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -15,6 +17,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -30,18 +35,13 @@ public class MyClass {
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     //存储日期-点号-变形量
     static TreeMap<Date, TreeMap<Integer, Double>> mData = new TreeMap<>();
+    private static DBManager mDBManager;
 
 
     public static void main(String[] args) {
-        initDB();
-
-
         System.out.println(System.getProperty("user.dir"));//user.dir指定了当前的路径
         String filename = System.getProperty("user.dir") + "\\lib\\src\\main\\java\\com\\example\\a.xlsx";
         System.out.println(System.getProperty("file.encoding"));
-
-//        System.out.println(filePath.endsWith(".xls"));
-//        System.exit(0);
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(new File(filename));
@@ -67,6 +67,52 @@ public class MyClass {
         } catch (Exception e1) {
             e1.printStackTrace();
         }
+
+        /*存数据库*/
+        Connection conn = initDB();
+
+        try {
+            mDBManager.executeUpdate(Altitude.createTableSQL);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String insertMany = "insert into " + Altitude.tableName +
+                "(" +
+                "`" + Altitude.DOT_NUM + "`," +
+                "`" + Altitude.MEASURE_TIME + "`," +
+                "`" + Altitude.ALTITUDE + "`" +
+                ") " +
+                "values(?,?,?)";
+        PreparedStatement pSmt = null;
+        try {
+
+            pSmt = conn.prepareStatement(insertMany);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        Iterator it = mData.keySet().iterator();
+        while (it.hasNext()) {
+            Date d = (Date) it.next();
+            long measure_time = d.getTime()/1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
+            TreeMap<Integer, Double> data = mData.get(d);
+            Iterator itt = data.keySet().iterator();
+            while (itt.hasNext()) {
+                Integer dotNum = (Integer) itt.next();
+                Double altitude = data.get(dotNum);
+                try {
+                    pSmt.setInt(1, dotNum);
+                    pSmt.setLong(2, measure_time);
+                    pSmt.setDouble(3, altitude);
+                    pSmt.executeUpdate();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        //        conn.prepareStatement()
+
+
 //        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 //        Iterator it = mData.keySet().iterator();
 //        while (it.hasNext()) {
@@ -80,28 +126,20 @@ public class MyClass {
 //        }
     }
 
-    private static void initDB() {
-        DBManager dBManager = new DBManager();
-//        String creDB = "CREATE DATABASE IF NOT EXISTS st_work";//创建一个数据库
-//            dBManager.executeSQL(creDB);
-        try {
-            //创建高程表
-            String creTB = "CREATE TABLE IF NOT EXISTS altitude " +
-                    "( id int auto_increment primary key, " +
-                    "dotnum int NOT NULL UNIQUE COMMENT '点号', " +
-                    "altitude decimal(5,5) COMMENT '高程值', " +
-                    "amend_value decimal(5,5) COMMENT '高程修正值'," +
-                    "measure_time int COMMENT '测量时间', " +
-                    "submit_time int COMMENT '提交时间', " +
-                    "create_time int, " +
-                    "update_time int, " +
-                    "initial_point boolean COMMENT '是否为起始参考点' DEFAULT 0," +
-                    "remarks varchar(100) COMMENT '备注');";
-            dBManager.executeSQL(creTB);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+    private static Connection initDB() {
+        mDBManager = new DBManager();
+//        String creDB = "CREATE DATABASE IF NOT EXISTS st_work";//创建一个数据库
+//            mDBManager.executeUpdate(creDB);
+        Connection conn = mDBManager.connectDB();
+        if (conn == null) {
+            try {
+                throw new Exception("Connection不能爲空");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        return conn;
     }
 
     /**

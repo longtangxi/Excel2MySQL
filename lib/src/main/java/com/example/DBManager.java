@@ -15,13 +15,8 @@ import java.util.Properties;
 
 public class DBManager {
 
-    private Statement stmt = null;
 
-    public DBManager() {
-        connectDB();
-    }
-
-    private void connectDB() {
+    public Connection connectDB() {
         Properties properties = new Properties();
         String propName = System.getProperty("user.dir") + "\\lib\\assets\\db.properties";
 
@@ -32,7 +27,8 @@ public class DBManager {
             String user = properties.getProperty("user");
             String passwd = properties.getProperty("passwd");
             Connection conn = DriverManager.getConnection(url+database, user, passwd);
-            stmt = conn.createStatement();
+            return conn;
+//            stmt = conn.createStatement();
 //
 //            ResultSet rs = stmt.executeQuery("select * from msg");
 //            while (rs.next()) {
@@ -45,32 +41,18 @@ public class DBManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-
-        Properties properties = new Properties();
-        String propName = System.getProperty("user.dir") + "\\lib\\assets\\db.properties";
-
-        try {
-            properties.load(new FileInputStream(new File(propName)));
-            String url = properties.getProperty("url");
-            String database = properties.getProperty("database");
-            String user = properties.getProperty("user");
-            String passwd = properties.getProperty("passwd");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return null;
     }
 
 
-    public void executeSQL(String sql) throws Exception {
-        if (null == stmt) {
-            connectDB();
+
+
+    public void executeUpdate(String sql) throws Exception {
+        Connection conn  = connectDB();
+        if (null == conn){
+            throw new Exception("数据库连接异常，没有获得Connection对象");
         }
-        if (null == stmt) {
-            throw new Exception("数据库连接异常");
-        }
+        Statement stmt = conn.createStatement();
         try {
             stmt.executeUpdate(sql);
         } catch (SQLException e) {
@@ -79,4 +61,17 @@ public class DBManager {
     }
 
 
+
+//    public void insertMany(String sql) throws Exception {
+//        Connection conn  = connectDB();
+//        if (null == conn){
+//            throw new Exception("数据库连接异常，没有获得Connection对象");
+//        }
+//        PreparedStatement pstmt = conn.prepareStatement(sql);
+//        try {
+//            pstmt.executeUpdate(sql);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
