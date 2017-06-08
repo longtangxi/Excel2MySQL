@@ -27,12 +27,10 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 
-public class MyClass {
+public class ExcelManager {
 
     static XSSFRow row;
 
-    //存储日期-点号-变形量
-    static TreeMap<Date, TreeMap<Double, Double>> mData = new TreeMap<>();
     private static DBManager mDBManager;
 
 
@@ -52,12 +50,17 @@ public class MyClass {
             }
             //构建一个高版本的EXCEL
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
+
             //获取指定的sheet
             XSSFSheet sheet = (XSSFSheet) getSheet(workbook, "");
             if (sheet == null) {
                 throw new Exception("没有找到指定的工作表");
             }
-            doSomething(sheet);
+
+            AltitudeBean altitudeBean = new AltitudeBean();
+            doSomething(sheet, altitudeBean);
+        /*存数据库*/
+            storeIntoDB(altitudeBean);
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         } catch (IOException e1) {
@@ -66,11 +69,12 @@ public class MyClass {
             e1.printStackTrace();
         }
 
-        /*存数据库*/
-        storeIntoDB();
     }
 
-    private static void storeIntoDB() {
+    /**
+     * 将拼装好的数据插入数据库
+     */
+    private static void storeIntoDB(AltitudeBean bean) {
         Connection conn = initDB();
 
         try {
@@ -95,11 +99,11 @@ public class MyClass {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        Iterator it = mData.keySet().iterator();
+        Iterator it = bean.getmData().keySet().iterator();
         while (it.hasNext()) {
             Date d = (Date) it.next();
             long measure_time = d.getTime() / 1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
-            TreeMap<Double, Double> data = mData.get(d);
+            TreeMap<Double, Double> data = bean.getmData().get(d);
             Iterator itt = data.keySet().iterator();
             while (itt.hasNext()) {
                 Double milenum = (Double) itt.next();
@@ -153,7 +157,7 @@ public class MyClass {
         return null;
     }
 
-    private static void doSomething(XSSFSheet sheet) {
+    private static void doSomething(XSSFSheet sheet, AltitudeBean bean) {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
         int colMilenum = -1;
@@ -176,7 +180,7 @@ public class MyClass {
 //                }
 //            }
             double thisRowMilenum = -1f;
-            /*-----------正则表达式----------*/
+            String regexIsBaseinfo = ".*(\\u9879\\u76ee\\u540d\\u79f0).*(\\u65bd\\u5de5\\u5730\\u70b9).*(\\u6d4b\\u91cf\\u7b49\\u7ea7).*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
             String regexIsMilenum = ".*(\\u91cc).*(\\u7a0b).*";//*里*程*
             String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形势
@@ -185,8 +189,18 @@ public class MyClass {
                 cell = cellIterator.next();
                 switch (cell.getCellTypeEnum()) {
                     case STRING://字符串
-                        String valueString = cell.getStringCellValue();
-                        int colString = cell.getColumnIndex();
+                        String valueString = cell.getStringCellValue();//cell的值
+                        int colString = cell.getColumnIndex(); //cell所处的列
+                        /*获取数据集的基本信息*/
+                        boolean isBaseinfo = valueString.matches(regexIsBaseinfo);
+                        if (isBaseinfo) {
+                            int prjName = valueString.indexOf("项目名称");
+                            int prjName1 = valueString.indexOf("\\u9879\\u76ee\\u540d\\u79f0");
+                            int prjName2 = valueString.indexOf("\\u65bd\\u5de5\\u5730\\u70b9");
+                            int prjName3 = valueString.indexOf("\\u6d4b\\u91cf\\u7b49\\u7ea7");
+                            int prjName4 = valueString.indexOf("\\u65bd\\u5de5\\u5730\\u70b9");
+                        }
+
                         boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
                         if (isAltitude) {//如果包含匹配"高程",说明该列下的数据为高程值
                             Iterator it = colDateMap.keySet().iterator();//获得存储好的日期所在列的集合
@@ -212,10 +226,10 @@ public class MyClass {
                     case _NONE:
                         break;
                     case NUMERIC://数字
-                        double valueNumeric = cell.getNumericCellValue();
-                        int colNumeric = cell.getColumnIndex();
+                        double valueNumeric = cell.getNumericCellValue();//cell的值
+                        int colNumeric = cell.getColumnIndex();//cell所处的列
 
-                        if (colNumeric == colMilenum && valueNumeric >= 0 && valueNumeric <= 1000 * 10000) {//里程号的数字形式
+                        if (colNumeric == colMilenum && valueNumeric >= 0 && valueNumeric <= 1000 * 10000) {//如果该列属于里程号列并且里程号的数字形式
 //                            isValidRow = true;
                             thisRowMilenum = valueNumeric;
                         }
@@ -229,12 +243,12 @@ public class MyClass {
                         //如果该列代表高程值&&且该行为有效数据行
                         if (altitudesMap.keySet().contains(colNumeric) && thisRowMilenum > 0) {
                             date = colDateMap.get(colNumeric);
-                            if (mData.get(date) == null) {
+                            if (bean.getmData().get(date) == null) {
                                 TreeMap<Double, Double> v = new TreeMap<>();
                                 v.put(thisRowMilenum, valueNumeric);
-                                mData.put(date, v);
+                                bean.getmData().put(date, v);
                             } else {
-                                mData.get(date).put(thisRowMilenum, valueNumeric);
+                                bean.getmData().get(date).put(thisRowMilenum, valueNumeric);
                             }
                         }
                         break;
