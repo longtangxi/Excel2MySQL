@@ -22,7 +22,7 @@ public class DBManager {
         conn = connectDB();
         if (null == conn) {
             try {
-                throw new Exception("数据库连接异常，没有获得Connection对象");
+                throw new Exception("数据库连接异常，Connection对象为空");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -90,7 +90,7 @@ public class DBManager {
     public void executeUpdate(String sql) throws Exception {
         Statement stmt = getStatement();
         if (stmt == null) {
-            throw new Exception("Statement获取失败");
+            throw new Exception("Statement为空");
         }
         try {
             stmt.executeUpdate(sql);
@@ -100,16 +100,5 @@ public class DBManager {
     }
 
 
-//    public void insertMany(String sql) throws Exception {
-//        Connection conn  = connectDB();
-//        if (null == conn){
-//            throw new Exception("数据库连接异常，没有获得Connection对象");
-//        }
-//        PreparedStatement pstmt = conn.prepareStatement(sql);
-//        try {
-//            pstmt.executeUpdate(sql);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
+
 }

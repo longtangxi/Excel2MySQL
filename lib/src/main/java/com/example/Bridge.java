@@ -19,6 +19,11 @@ public class Bridge {
 
     public static void storeExcel2DB(AltitudeBean bean) {
         DBManager db = DBManager.getInstance();
+        /*先完善bean的信息*/
+
+
+
+
         String insertManySQL = "insert into " + Altitude.tableName +
                 "(" +
                 "`" + Altitude.DOT_NUM + "`," +

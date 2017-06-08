@@ -55,10 +55,10 @@ public class ExcelManager {
             }
 
             AltitudeBean altitudeBean = new AltitudeBean();
-            getDataFromExcel(sheet, altitudeBean);
-            /*存数据库*/
+            getDataFromExcel(sheet, altitudeBean);//从Excel表中获取想要的信息
+
             if (altitudeBean != null) {
-                Bridge.storeExcel2DB(altitudeBean);
+                Bridge.storeExcel2DB(altitudeBean);//获取成功，存数据库
 //            storeIntoDB(altitudeBean);
             }
         } catch (FileNotFoundException e1) {
