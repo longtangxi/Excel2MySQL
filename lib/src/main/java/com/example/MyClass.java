@@ -4,7 +4,6 @@ package com.example;
 import com.example.table.Altitude;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -84,9 +83,11 @@ public class MyClass {
                 "(" +
                 "`" + Altitude.DOT_NUM + "`," +
                 "`" + Altitude.MEASURE_TIME + "`," +
-                "`" + Altitude.ALTITUDE + "`" +
+                "`" + Altitude.ALTITUDE + "`," +
+                "`" + Altitude.CREATE_TIME + "`," +
+                "`" + Altitude.UPDATE_TIME + "`" +
                 ") " +
-                "values(?,?,?)";
+                "values(?,?,?,?,?)";
         PreparedStatement pSmt = null;
         try {
 
@@ -97,16 +98,19 @@ public class MyClass {
         Iterator it = mData.keySet().iterator();
         while (it.hasNext()) {
             Date d = (Date) it.next();
-            long measure_time = d.getTime()/1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
+            long measure_time = d.getTime() / 1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
             TreeMap<Integer, Double> data = mData.get(d);
             Iterator itt = data.keySet().iterator();
             while (itt.hasNext()) {
                 Integer dotNum = (Integer) itt.next();
                 Double altitude = data.get(dotNum);
+                long curTime = System.currentTimeMillis() / 1000;
                 try {
                     pSmt.setInt(1, dotNum);
                     pSmt.setLong(2, measure_time);
                     pSmt.setDouble(3, altitude);
+                    pSmt.setLong(4, curTime);
+                    pSmt.setLong(5, curTime);
                     pSmt.executeUpdate();
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -152,6 +156,7 @@ public class MyClass {
     private static void doSomething(XSSFSheet sheet) {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
+        int colMilenum = -1;
         Iterator<Row> iterator = sheet.iterator();//获取行的迭代器
         while (iterator.hasNext()) {
 
@@ -162,57 +167,72 @@ public class MyClass {
 //            int rowNum = row.getRowNum();
 //            System.out.println("row:" + rowNum);
 
-            int dot = -1;
+//            int dot = -1;
             Cell cell;
-            if (cellIterator.hasNext()) {
-                cell = cellIterator.next();
-                if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                    dot = (int) cell.getNumericCellValue();
-                }
-            }
+//            if (cellIterator.hasNext()) {
+//                cell = cellIterator.next();
+//                if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+//                    dot = (int) cell.getNumericCellValue();
+//                }
+//            }
+            boolean isValidRow = false;//该行是否为有效数据行，如果是则可以在该行取得里程号，高程值等数据
+            double thisRowMilenum = -1f;
+            /*-----------正则表达式----------*/
+            String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
+            String regexIsMilenum = ".*(\\u91cc).*(\\u7a0b).*";//*里*程*
+            String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形势
+
             while (cellIterator.hasNext()) {
                 cell = cellIterator.next();
                 switch (cell.getCellTypeEnum()) {
                     case STRING://字符串
-                        String value = cell.getStringCellValue();
-                        boolean isAltitude = value.matches(".*(\\u9ad8).*(\\u7a0b).*");//*高*程* 必须转为unicode码，否则不会匹配成功
+                        String valueString = cell.getStringCellValue();
+                        int colString = cell.getColumnIndex();
+                        boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
                         if (isAltitude) {//如果包含匹配"高程",说明该列下的数据为高程值
                             Iterator it = colDateMap.keySet().iterator();//获得存储好的日期所在列的集合
                             while (it.hasNext()) {
                                 Integer dateCol = (Integer) it.next();
-                                if ((cell.getColumnIndex() - dateCol) <= 1) {//如果该Cell的列在某个日期所在列的右侧的合理范围内，则认为是该日期下所测的高程值
-                                    altitudesMap.put(cell.getColumnIndex(), colDateMap.get(dateCol));//将存放高程值的列号和对应的日期存储起来
+                                if ((colString - dateCol) <= 1) {//如果该Cell的列在某个日期所在列的右侧的合理范围内，则认为是该日期下所测的高程值
+                                    altitudesMap.put(colString, colDateMap.get(dateCol));//将存放高程值的列号和对应的日期存储起来
                                     break;
                                 }
                             }
 
                         }
-
+                        boolean isMilenum = valueString.matches(regexIsMilenum);//*里*程* 如果该列对应的是里程号,记录下来
+                        if (isMilenum && colMilenum == -1) {
+                            colMilenum = colString;
+                        }
+                        if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且跟里程号的字符串形式匹配
+                            isValidRow = true;
+                        }
                         break;
                     case _NONE:
                         break;
                     case NUMERIC://数字
-                    /*获取点号*/
+                        double valueNumeric = cell.getNumericCellValue();
+                        int colNumeric = cell.getColumnIndex();
+
+                        if (colNumeric == colMilenum && valueNumeric >= 0 && valueNumeric <= 1000 * 10000) {//里程号的数字形式
+                            isValidRow = true;
+                        }
                     /*获取日期*/
                         Date date = getDateFromCell(cell);
                         if (date != null) {
                             //该日期下的列号
-                            int column = cell.getColumnIndex();
-                            colDateMap.put(column, date);
+                            colDateMap.put(colNumeric, date);
                         }
                     /*获取高程值*/
-                        int columnIndex = cell.getColumnIndex();
-                        //如果该列代表高程值&&点号不是-1，说明该行的第一个值为点号
-                        if (altitudesMap.keySet().contains(columnIndex) && dot != -1) {
-                            double altitude = cell.getNumericCellValue();
-                            date = colDateMap.get(columnIndex);
+                        //如果该列代表高程值&&且该行为有效数据行
+                        if (altitudesMap.keySet().contains(colNumeric) && isValidRow) {
+                            date = colDateMap.get(colNumeric);
                             if (mData.get(date) == null) {
-
                                 TreeMap<Integer, Double> v = new TreeMap<>();
-                                v.put(dot, altitude);
+                                v.put(colNumeric, valueNumeric);
                                 mData.put(date, v);
                             } else {
-                                mData.get(date).put(dot, altitude);
+                                mData.get(date).put(colNumeric, valueNumeric);
                             }
                         }
                         break;
@@ -227,7 +247,6 @@ public class MyClass {
                         break;
                 }
             }
-            dot = -1;
         }
 
     }
