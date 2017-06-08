@@ -32,7 +32,7 @@ public class MyClass {
     static XSSFRow row;
 
     //存储日期-点号-变形量
-    static TreeMap<Date, TreeMap<Integer, Double>> mData = new TreeMap<>();
+    static TreeMap<Date, TreeMap<Double, Double>> mData = new TreeMap<>();
     private static DBManager mDBManager;
 
 
@@ -99,14 +99,14 @@ public class MyClass {
         while (it.hasNext()) {
             Date d = (Date) it.next();
             long measure_time = d.getTime() / 1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
-            TreeMap<Integer, Double> data = mData.get(d);
+            TreeMap<Double, Double> data = mData.get(d);
             Iterator itt = data.keySet().iterator();
             while (itt.hasNext()) {
-                Integer dotNum = (Integer) itt.next();
-                Double altitude = data.get(dotNum);
+                Double milenum = (Double) itt.next();
+                Double altitude = data.get(milenum);
                 long curTime = System.currentTimeMillis() / 1000;
                 try {
-                    pSmt.setInt(1, dotNum);
+                    pSmt.setDouble(1, milenum);
                     pSmt.setLong(2, measure_time);
                     pSmt.setDouble(3, altitude);
                     pSmt.setLong(4, curTime);
@@ -175,7 +175,6 @@ public class MyClass {
 //                    dot = (int) cell.getNumericCellValue();
 //                }
 //            }
-            boolean isValidRow = false;//该行是否为有效数据行，如果是则可以在该行取得里程号，高程值等数据
             double thisRowMilenum = -1f;
             /*-----------正则表达式----------*/
             String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
@@ -205,7 +204,9 @@ public class MyClass {
                             colMilenum = colString;
                         }
                         if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且跟里程号的字符串形式匹配
-                            isValidRow = true;
+//                            isValidRow = true;
+                            String[] a = valueString.substring(1).split("\\+");
+                            thisRowMilenum = Double.parseDouble(a[0]) * 1000 + Double.parseDouble(a[1]);
                         }
                         break;
                     case _NONE:
@@ -215,7 +216,8 @@ public class MyClass {
                         int colNumeric = cell.getColumnIndex();
 
                         if (colNumeric == colMilenum && valueNumeric >= 0 && valueNumeric <= 1000 * 10000) {//里程号的数字形式
-                            isValidRow = true;
+//                            isValidRow = true;
+                            thisRowMilenum = valueNumeric;
                         }
                     /*获取日期*/
                         Date date = getDateFromCell(cell);
@@ -225,14 +227,14 @@ public class MyClass {
                         }
                     /*获取高程值*/
                         //如果该列代表高程值&&且该行为有效数据行
-                        if (altitudesMap.keySet().contains(colNumeric) && isValidRow) {
+                        if (altitudesMap.keySet().contains(colNumeric) && thisRowMilenum > 0) {
                             date = colDateMap.get(colNumeric);
                             if (mData.get(date) == null) {
-                                TreeMap<Integer, Double> v = new TreeMap<>();
-                                v.put(colNumeric, valueNumeric);
+                                TreeMap<Double, Double> v = new TreeMap<>();
+                                v.put(thisRowMilenum, valueNumeric);
                                 mData.put(date, v);
                             } else {
-                                mData.get(date).put(colNumeric, valueNumeric);
+                                mData.get(date).put(thisRowMilenum, valueNumeric);
                             }
                         }
                         break;
