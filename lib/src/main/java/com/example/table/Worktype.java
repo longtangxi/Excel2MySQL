@@ -26,7 +26,7 @@ public class Worktype {
             ")";
 
     public static void main(String[] args){
-        DBManager manager = new DBManager();
+        DBManager manager = DBManager.getInstance();
         try {
             manager.executeUpdate(createTableSQL);
         } catch (Exception e) {

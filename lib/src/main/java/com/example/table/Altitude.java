@@ -40,7 +40,7 @@ public class Altitude {
             REMARKS + " varchar(100) COMMENT '备注');";
 
     public static void main(String[] args){
-        DBManager manager = new DBManager();
+        DBManager manager = DBManager.getInstance();
         try {
             manager.executeUpdate(createTableSQL);
         } catch (Exception e) {

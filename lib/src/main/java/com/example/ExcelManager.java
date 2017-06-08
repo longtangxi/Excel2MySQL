@@ -1,8 +1,6 @@
 package com.example;
 
 
-import com.example.table.Altitude;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -16,9 +14,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -30,8 +25,6 @@ import java.util.TreeMap;
 public class ExcelManager {
 
     static XSSFRow row;
-
-    private static DBManager mDBManager;
 
 
     public static void main(String[] args) {
@@ -59,8 +52,11 @@ public class ExcelManager {
 
             AltitudeBean altitudeBean = new AltitudeBean();
             doSomething(sheet, altitudeBean);
-        /*存数据库*/
-            storeIntoDB(altitudeBean);
+            /*存数据库*/
+            if (altitudeBean != null) {
+                Bridge.storeExcel2DB(altitudeBean);
+//            storeIntoDB(altitudeBean);
+            }
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         } catch (IOException e1) {
@@ -71,73 +67,6 @@ public class ExcelManager {
 
     }
 
-    /**
-     * 将拼装好的数据插入数据库
-     */
-    private static void storeIntoDB(AltitudeBean bean) {
-        Connection conn = initDB();
-
-        try {
-            mDBManager.executeUpdate(Altitude.createTableSQL);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        String insertMany = "insert into " + Altitude.tableName +
-                "(" +
-                "`" + Altitude.DOT_NUM + "`," +
-                "`" + Altitude.MEASURE_TIME + "`," +
-                "`" + Altitude.ALTITUDE + "`," +
-                "`" + Altitude.CREATE_TIME + "`," +
-                "`" + Altitude.UPDATE_TIME + "`" +
-                ") " +
-                "values(?,?,?,?,?)";
-        PreparedStatement pSmt = null;
-        try {
-
-            pSmt = conn.prepareStatement(insertMany);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        Iterator it = bean.getmData().keySet().iterator();
-        while (it.hasNext()) {
-            Date d = (Date) it.next();
-            long measure_time = d.getTime() / 1000;//测量时间,java中生成的时间戳精确到毫秒级别，而unix中精确到秒级别
-            TreeMap<Double, Double> data = bean.getmData().get(d);
-            Iterator itt = data.keySet().iterator();
-            while (itt.hasNext()) {
-                Double milenum = (Double) itt.next();
-                Double altitude = data.get(milenum);
-                long curTime = System.currentTimeMillis() / 1000;
-                try {
-                    pSmt.setDouble(1, milenum);
-                    pSmt.setLong(2, measure_time);
-                    pSmt.setDouble(3, altitude);
-                    pSmt.setLong(4, curTime);
-                    pSmt.setLong(5, curTime);
-                    pSmt.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
-    private static Connection initDB() {
-        mDBManager = new DBManager();
-//        String creDB = "CREATE DATABASE IF NOT EXISTS st_work";//创建一个数据库
-//            mDBManager.executeUpdate(creDB);
-        Connection conn = mDBManager.connectDB();
-        if (conn == null) {
-            try {
-                throw new Exception("Connection不能爲空");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return conn;
-    }
 
     /**
      * 根据指定规则得到一个工作表sheet
@@ -168,17 +97,7 @@ public class ExcelManager {
 
             Iterator<Cell> cellIterator = row.cellIterator();
 
-//            int rowNum = row.getRowNum();
-//            System.out.println("row:" + rowNum);
-
-//            int dot = -1;
             Cell cell;
-//            if (cellIterator.hasNext()) {
-//                cell = cellIterator.next();
-//                if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-//                    dot = (int) cell.getNumericCellValue();
-//                }
-//            }
             double thisRowMilenum = -1f;
             String regexIsBaseinfo = ".*(\\u9879\\u76ee\\u540d\\u79f0).*(\\u65bd\\u5de5\\u5730\\u70b9).*(\\u6d4b\\u91cf\\u7b49\\u7ea7).*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
