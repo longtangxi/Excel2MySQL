@@ -10,9 +10,29 @@ import java.util.TreeMap;
 public class AltitudeBean {
 
     int projectID;
-    int projectType;
-    String address;
+    int projectTypeID;
     int level;
+    double[] projectRange;
+    String address;
+    String projectName;
+    String projectType;
+
+    public String getProjectType() {
+        return projectType;
+    }
+
+    public void setProjectType(String projectType) {
+        this.projectType = projectType;
+    }
+
+    public double[] getProjectRange() {
+        return projectRange;
+    }
+
+    public void setProjectRange(double[] projectRange) {
+        this.projectRange = projectRange;
+    }
+
     //存储日期-点号-变形量
     TreeMap<Date, TreeMap<Double, Double>> mData = new TreeMap<>();
 
@@ -24,12 +44,12 @@ public class AltitudeBean {
         this.projectID = projectID;
     }
 
-    public int getProjectType() {
-        return projectType;
+    public int getProjectTypeID() {
+        return projectTypeID;
     }
 
-    public void setProjectType(int projectType) {
-        this.projectType = projectType;
+    public void setProjectTypeID(int projectTypeID) {
+        this.projectTypeID = projectTypeID;
     }
 
     public String getAddress() {
@@ -55,4 +75,13 @@ public class AltitudeBean {
     public void setmData(TreeMap<Date, TreeMap<Double, Double>> mData) {
         this.mData = mData;
     }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
 }

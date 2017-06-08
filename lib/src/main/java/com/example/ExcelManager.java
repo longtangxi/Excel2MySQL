@@ -1,6 +1,8 @@
 package com.example;
 
 
+import com.xiaoleilu.hutool.convert.Convert;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -20,6 +22,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class ExcelManager {
@@ -51,7 +55,7 @@ public class ExcelManager {
             }
 
             AltitudeBean altitudeBean = new AltitudeBean();
-            doSomething(sheet, altitudeBean);
+            getDataFromExcel(sheet, altitudeBean);
             /*存数据库*/
             if (altitudeBean != null) {
                 Bridge.storeExcel2DB(altitudeBean);
@@ -86,7 +90,7 @@ public class ExcelManager {
         return null;
     }
 
-    private static void doSomething(XSSFSheet sheet, AltitudeBean bean) {
+    private static void getDataFromExcel(XSSFSheet sheet, AltitudeBean bean) {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
         int colMilenum = -1;
@@ -113,11 +117,13 @@ public class ExcelManager {
                         /*获取数据集的基本信息*/
                         boolean isBaseinfo = valueString.matches(regexIsBaseinfo);
                         if (isBaseinfo) {
-                            int prjName = valueString.indexOf("项目名称");
-                            int prjName1 = valueString.indexOf("\\u9879\\u76ee\\u540d\\u79f0");
-                            int prjName2 = valueString.indexOf("\\u65bd\\u5de5\\u5730\\u70b9");
-                            int prjName3 = valueString.indexOf("\\u6d4b\\u91cf\\u7b49\\u7ea7");
-                            int prjName4 = valueString.indexOf("\\u65bd\\u5de5\\u5730\\u70b9");
+                            valueString = valueString.replaceAll("\\s+", "")
+                                    .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
+                            bean.setProjectName(getProjectName(valueString));//项目名称
+                            bean.setProjectRange(getProjectRange(valueString));//项目里程范围
+                            bean.setProjectType(getProjectType(valueString));//项目施工类型
+                            bean.setAddress(getProjectAddr(valueString));//项目施工地点
+                            bean.setLevel(getProjectLevel(valueString));//项目测量等级
                         }
 
                         boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
@@ -184,6 +190,118 @@ public class ExcelManager {
             }
         }
 
+    }
+
+    /**
+     * 获取项目测量等级
+     *
+     * @param valueString
+     * @return
+     */
+    private static int getProjectLevel(String valueString) {
+        String plevel = "测量等级";
+        String regex = Convert.strToUnicode(plevel) + "[\\u0391-\\uFFE5]+" + Convert.strToUnicode("等");
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(valueString);
+        while (m.find()) {
+            String res = valueString.substring(m.start() + plevel.length(), m.end());
+            if (res.indexOf("一") != -1) {
+                return 1;
+            } else if (res.indexOf("二") != -1) {
+                return 2;
+            } else if (res.indexOf("三") != -1) {
+                return 3;
+            } else if (res.indexOf("四") != -1) {
+                return 4;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 获取项目测量位置
+     *
+     * @param valueString
+     * @return
+     */
+    private static String getProjectAddr(String valueString) {
+        String paddr = "施工地点";
+
+        String plevel = "测量等级";
+        String regex = Convert.strToUnicode(paddr) + "[\\u0391-\\uFFE5]+" + Convert.strToUnicode(plevel);
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(valueString);
+        while (m.find()) {
+            return valueString.substring(m.start() + paddr.length(), m.end() - plevel.length());
+        }
+        return "";
+    }
+
+    /**
+     * 获取项目施工类型
+     *
+     * @param valueString
+     * @return
+     */
+    private static String getProjectType(String valueString) {
+        String ptype = "项目类型";
+        String paddr = "施工地点";
+        String regex = "\\d{1}[\\u0391-\\uFFE5]+" + Convert.strToUnicode(paddr);//
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(valueString);
+        while (m.find()) {
+            return valueString.substring(m.start() + 1, m.end() - paddr.length());
+        }
+        return "";
+    }
+
+    /**
+     * 获取项目里程范围
+     *
+     * @param valueString
+     */
+    private static double[] getProjectRange(String valueString) {
+        String regex = "[k|K].*\\+\\d{1,3}";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(valueString);
+        while (m.find()) {
+            String[] lowAndHigh = valueString.substring(m.start(), m.end()).replaceAll("[k|K]", "").split("[～|~]");
+            if (lowAndHigh.length == 2) {
+                String[] t = lowAndHigh[0].split("\\+");
+                double[] result = new double[2];
+                if (t.length == 2) {
+                    double lower = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//小里程
+                    result[0] = lower;
+                }
+                t = lowAndHigh[1].split("\\+");
+                if (t.length == 2) {
+                    double higher = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//大里程
+                    result[1] = higher;
+                }
+                return result;
+            }
+        }
+        return new double[2];
+    }
+
+    /**
+     * 获取项目名称
+     *
+     * @param valueString
+     * @return
+     */
+    private static String getProjectName(String valueString) {
+        String pname = "项目名称";
+        String regex = Convert.strToUnicode(pname) + "[\\u0391-\\uFFE5]+" + Convert.strToUnicode("线");//
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(valueString);
+        while (m.find()) {
+            return valueString.substring(m.start() + pname.length(), m.end());
+        }
+        return "";
     }
 
 
