@@ -13,8 +13,18 @@ public class AltitudeBean {
     int projectTypeID;
     int level;
     double[] projectRange;
-    String address;
+    String addrWork;
+    String addrDot;
     String projectName;
+
+    public String getAddrDot() {
+        return addrDot;
+    }
+
+    public void setAddrDot(String addrDot) {
+        this.addrDot = addrDot;
+    }
+
     String projectType;
 
     public String getProjectType() {
@@ -52,12 +62,12 @@ public class AltitudeBean {
         this.projectTypeID = projectTypeID;
     }
 
-    public String getAddress() {
-        return address;
+    public String getAddrWork() {
+        return addrWork;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setAddrWork(String addrWork) {
+        this.addrWork = addrWork;
     }
 
     public int getLevel() {

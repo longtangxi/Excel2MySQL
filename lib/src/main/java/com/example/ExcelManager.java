@@ -48,17 +48,17 @@ public class ExcelManager {
             //构建一个高版本的EXCEL
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
 
+            AltitudeBean bean = new AltitudeBean();
             //获取指定的sheet
-            XSSFSheet sheet = (XSSFSheet) getSheet(workbook, "");
+            XSSFSheet sheet = (XSSFSheet) getSheet(workbook,bean);
             if (sheet == null) {
                 throw new Exception("没有找到指定的工作表");
             }
 
-            AltitudeBean altitudeBean = new AltitudeBean();
-            getDataFromExcel(sheet, altitudeBean);//从Excel表中获取想要的信息
+            getDataFromExcel(sheet, bean);//从Excel表中获取想要的信息
 
-            if (altitudeBean != null) {
-                Bridge.storeExcel2DB(altitudeBean);//获取成功，存数据库
+            if (bean != null) {
+                Bridge.storeExcel2DB(bean);//获取成功，存数据库
 //            storeIntoDB(altitudeBean);
             }
         } catch (FileNotFoundException e1) {
@@ -76,14 +76,15 @@ public class ExcelManager {
      * 根据指定规则得到一个工作表sheet
      *
      * @param workbook
-     * @param name
+     * @param bean
      * @return
      */
-    private static Sheet getSheet(Workbook workbook, String name) {
+    private static Sheet getSheet(Workbook workbook, AltitudeBean bean) {
         int shtNum = workbook.getNumberOfSheets();
         for (int i = 0; i < shtNum; i++) {
             String shtName = workbook.getSheetAt(i).getSheetName();//工作表名
-            if (shtName.matches("\\u4e0b\\u884c\\u8def\\u5824\\u7eb5\\u65ad\\u9762")) {//下行路堤纵断面
+            if (shtName.matches(Convert.strToUnicode("下行路堤纵断面"))) {//下行路堤纵断面
+                bean.setAddrDot(shtName);
                 return workbook.getSheetAt(i);
             }
         }
@@ -106,7 +107,7 @@ public class ExcelManager {
             String regexIsBaseinfo = ".*(\\u9879\\u76ee\\u540d\\u79f0).*(\\u65bd\\u5de5\\u5730\\u70b9).*(\\u6d4b\\u91cf\\u7b49\\u7ea7).*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
             String regexIsMilenum = ".*(\\u91cc).*(\\u7a0b).*";//*里*程*
-            String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形势
+            String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形式
 
             while (cellIterator.hasNext()) {
                 cell = cellIterator.next();
@@ -122,7 +123,7 @@ public class ExcelManager {
                             bean.setProjectName(getProjectName(valueString));//项目名称
                             bean.setProjectRange(getProjectRange(valueString));//项目里程范围
                             bean.setProjectType(getProjectType(valueString));//项目施工类型
-                            bean.setAddress(getProjectAddr(valueString));//项目施工地点
+                            bean.setAddrWork(getProjectAddr(valueString));//项目施工地点
                             bean.setLevel(getProjectLevel(valueString));//项目测量等级
                         }
 
