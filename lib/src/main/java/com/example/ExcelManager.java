@@ -48,9 +48,9 @@ public class ExcelManager {
             //构建一个高版本的EXCEL
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
 
-            AltitudeBean bean = new AltitudeBean();
+            SheetBean bean = new SheetBean();
             //获取指定的sheet
-            XSSFSheet sheet = (XSSFSheet) getSheet(workbook,bean);
+            XSSFSheet sheet = (XSSFSheet) getSheet(workbook, bean);
             if (sheet == null) {
                 throw new Exception("没有找到指定的工作表");
             }
@@ -76,22 +76,22 @@ public class ExcelManager {
      * 根据指定规则得到一个工作表sheet
      *
      * @param workbook
-     * @param bean
+     * @param SheetBean
      * @return
      */
-    private static Sheet getSheet(Workbook workbook, AltitudeBean bean) {
+    private static Sheet getSheet(Workbook workbook, SheetBean SheetBean) {
         int shtNum = workbook.getNumberOfSheets();
         for (int i = 0; i < shtNum; i++) {
             String shtName = workbook.getSheetAt(i).getSheetName();//工作表名
             if (shtName.matches(Convert.strToUnicode("下行路堤纵断面"))) {//下行路堤纵断面
-                bean.setAddrDot(shtName);
+                SheetBean.setSheetName(shtName);
                 return workbook.getSheetAt(i);
             }
         }
         return null;
     }
 
-    private static void getDataFromExcel(XSSFSheet sheet, AltitudeBean bean) {
+    private static void getDataFromExcel(XSSFSheet sheet, SheetBean SheetBean) {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
         int colMilenum = -1;
@@ -103,7 +103,8 @@ public class ExcelManager {
             Iterator<Cell> cellIterator = row.cellIterator();
 
             Cell cell;
-            double thisRowMilenum = -1f;
+            double thisRowMilenum = -1f;//该行对应的里程号
+            boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
             String regexIsBaseinfo = ".*(\\u9879\\u76ee\\u540d\\u79f0).*(\\u65bd\\u5de5\\u5730\\u70b9).*(\\u6d4b\\u91cf\\u7b49\\u7ea7).*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
             String regexIsMilenum = ".*(\\u91cc).*(\\u7a0b).*";//*里*程*
@@ -120,11 +121,11 @@ public class ExcelManager {
                         if (isBaseinfo) {
                             valueString = valueString.replaceAll("\\s+", "")
                                     .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
-                            bean.setProjectName(getProjectName(valueString));//项目名称
-                            bean.setProjectRange(getProjectRange(valueString));//项目里程范围
-                            bean.setProjectType(getProjectType(valueString));//项目施工类型
-                            bean.setAddrWork(getProjectAddr(valueString));//项目施工地点
-                            bean.setLevel(getProjectLevel(valueString));//项目测量等级
+                            SheetBean.setProjectName(getProjectName(valueString));//项目名称
+                            SheetBean.setProjectRange(getProjectRange(valueString));//项目里程范围
+                            SheetBean.setProjectType(getProjectType(valueString));//项目施工类型
+                            SheetBean.setAddrWork(getProjectAddr(valueString));//项目施工地点
+                            SheetBean.setLevel(getProjectLevel(valueString));//项目测量等级
                         }
 
                         boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
@@ -169,13 +170,16 @@ public class ExcelManager {
                         //如果该列代表高程值&&且该行为有效数据行
                         if (altitudesMap.keySet().contains(colNumeric) && thisRowMilenum > 0) {
                             date = colDateMap.get(colNumeric);
-                            if (bean.getmData().get(date) == null) {
-                                TreeMap<Double, Double> v = new TreeMap<>();
-                                v.put(thisRowMilenum, valueNumeric);
-                                bean.getmData().put(date, v);
-                            } else {
-                                bean.getmData().get(date).put(thisRowMilenum, valueNumeric);
+                            SheetBean.DotBean dotBean = new SheetBean.DotBean();
+                            dotBean.setDate(date);
+                            dotBean.setMilenum(thisRowMilenum);
+                            dotBean.setAltitude(valueNumeric);
+                            if (!isInitPoint) {
+                                //如果该行之前的高程列还没有值，就就将其作为初始值（ps：后期还得改逻辑）
+                                dotBean.setInitPoint(true);
+                                isInitPoint = true;
                             }
+                            SheetBean.getList().add(dotBean);
                         }
                         break;
                     case FORMULA://公式
