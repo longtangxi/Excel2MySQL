@@ -86,7 +86,17 @@ public class DBManager {
         }
         return null;
     }
+    public PreparedStatement getPreparedStatement(String sql, int resultSetType,
+                                                  int resultSetConcurrency) {
 
+        try {
+            PreparedStatement p = conn.prepareStatement(sql,resultSetType,resultSetConcurrency);
+            return p;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     public void executeUpdate(String sql) throws Exception {
         Statement stmt = getStatement();
         if (stmt == null) {
