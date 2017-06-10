@@ -7,9 +7,6 @@ package com.example.table;
 
 import com.example.DBManager;
 
-import static com.example.table.Project.CREATE_TIME;
-import static com.example.table.Project.UPDATE_TIME;
-
 /**
  * 高程表
  */
@@ -21,8 +18,6 @@ public class Type extends BaseTable{
     public static String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName +
             "( " + ID + " tinyint unsigned auto_increment primary key, " +
             NAME + " varchar(100) NOT NULL COMMENT '名称', " +
-            CREATE_TIME + " int(11), " +
-            UPDATE_TIME + " int(11)" +
             ")";
 
     public static void main(String[] args){

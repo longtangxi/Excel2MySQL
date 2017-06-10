@@ -11,10 +11,9 @@ import com.example.DBManager;
  * 高程表
  */
 public class Project extends BaseTable {
+    //测试新
     public static String tableName = Project.class.getSimpleName().toLowerCase();
     public static String NAME = "name";
-    public static String CREATE_TIME = "create_time";
-    public static String UPDATE_TIME = "update_time";
 
 
     public static String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName +
