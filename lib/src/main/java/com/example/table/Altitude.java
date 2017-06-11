@@ -22,7 +22,7 @@ public class Altitude extends BaseTable {
     public static String ADDR_DOT = "addr_dot";
     public static String LEVEL = "level";
     public static String PROJECT_ID = "pro_id";
-
+    public static String FOCUs_ID = "focus_id";
 
 
     static StringBuilder createTableSQL = new StringBuilder()
@@ -39,10 +39,11 @@ public class Altitude extends BaseTable {
             .append("," + IS_INIT + " tinyint unsigned COMMENT '是否为起始参考点' DEFAULT 0")
             .append("," + COMMENT + " varchar(100) COMMENT '备注'")
             .append("," + PROJECT_ID + " tinyint unsigned COMMENT '工程ID'")
+            .append("," + FOCUs_ID + " tinyint unsigned COMMENT '所属重点段ID'")
             .append("," + MEASURE_TIME + " datetime")
             .append("," + SUBMIT_TIME + " datetime")
-            .append("," + GMT_CREATE + " datetime")
-            .append("," + GMT_MODIFIED + " datetime")
+            .append("," + GMT_CREATE + " datetime NOT NULL")
+            .append("," + GMT_MODIFIED + " datetime NOT NULL")
             .append("," + "constraint milenum_measuretime_uk unique( " + MILENUM + "," + MEASURE_TIME + ")")
             .append(" )");
 

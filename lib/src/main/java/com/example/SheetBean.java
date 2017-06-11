@@ -13,6 +13,7 @@ public class SheetBean {
     int pID;
     int pTypeID;
     int level;
+    int foucusID;
     double[] projectRange;
     String addrWork;
     String projectName;
@@ -20,6 +21,14 @@ public class SheetBean {
 
     LinkedList<DotBean> list = new LinkedList<>();//数据集
     String sheetName;
+
+    public int getFoucusID() {
+        return foucusID;
+    }
+
+    public void setFoucusID(int foucusID) {
+        this.foucusID = foucusID;
+    }
 
     public String getSheetName() {
         return sheetName;

@@ -1,7 +1,9 @@
 package com.example;
 
 import com.example.table.Altitude;
+import com.example.table.Focus;
 import com.example.table.Project;
+import com.xiaoleilu.hutool.convert.Convert;
 import com.xiaoleilu.hutool.lang.Console;
 
 import java.sql.PreparedStatement;
@@ -61,8 +63,9 @@ public class Bridge {
                 .append(",`" + Altitude.PROJECT_ID + "`")
                 .append(",`" + Altitude.ADDR_DOT + "`")
                 .append(",`" + Altitude.IS_INIT + "`")
+                .append(",`" + Altitude.FOCUs_ID + "`")
                 .append(") ")
-                .append("values(?,?,?,?,?,?,?,?,?,?)");
+                .append("values(?,?,?,?,?,?,?,?,?,?,?)");
         PreparedStatement pSmt = db.getPreparedStatement(insertManySQL.toString());
         if (pSmt == null) {
             try {
@@ -85,6 +88,7 @@ public class Bridge {
                 pSmt.setInt(8, sheetBean.getpID());
                 pSmt.setString(9, sheetBean.getSheetName());
                 pSmt.setInt(10, dotBean.isInitPoint() ? 1 : 0);
+                pSmt.setInt(11, sheetBean.getFoucusID());
                 pSmt.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -101,8 +105,13 @@ public class Bridge {
      */
     private static void setBean(SheetBean bean, DBManager db) {
     /*先完善bean的信息*/
-        String querySQL = "select " + Project.ID + "," + Project.NAME + " from " + Project.tableName;//查询工程ID,名称
-        PreparedStatement pstmt = db.getPreparedStatement(querySQL//传入控制结果集可滚动、可更新的参数
+        StringBuilder sql = new StringBuilder()
+                .append("select ")
+                .append(Project.ID)
+                .append("," + Project.NAME)
+                .append(" from ")
+                .append(Project.tableName);//查询工程ID,名称
+        PreparedStatement pstmt = db.getPreparedStatement(sql.toString() //传入控制结果集可滚动、可更新的参数
                 , ResultSet.TYPE_SCROLL_INSENSITIVE
                 , ResultSet.CONCUR_UPDATABLE);
         try {
@@ -115,6 +124,30 @@ public class Bridge {
                     bean.setpID(rs.getInt(1));//设置Bean中的ID
                     break;
                 }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        int direction = bean.getProjectType().matches(".*" + Convert.strToUnicode("沉降") + ".*") ? 1 : 0;
+        sql = new StringBuilder()
+                .append("select ")
+                .append(Focus.ID)
+                .append(" from ")
+                .append(Focus.tableName)
+                .append(" where ")
+                .append(Focus.NAME + " like 'K646+%'")
+                .append(" and " + Focus.CONTENT + "=" + direction);
+//        Console.log(sql.toString());
+        pstmt = db.getPreparedStatement(sql.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE
+                , ResultSet.CONCUR_UPDATABLE);
+        try {
+            ResultSet rs = pstmt.executeQuery();
+            rs.last();
+            int rowCount = rs.getRow();
+            for (int i = 1; i <= rowCount; i++) {
+                rs.absolute(i);
+                bean.setFoucusID(rs.getInt(1));
             }
         } catch (SQLException e) {
             e.printStackTrace();
