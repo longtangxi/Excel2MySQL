@@ -105,9 +105,9 @@ public class ExcelManager {
             Cell cell;
             double thisRowMilenum = -1f;//该行对应的里程号
             boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
-            String regexIsBaseinfo = ".*(\\u9879\\u76ee\\u540d\\u79f0).*(\\u65bd\\u5de5\\u5730\\u70b9).*(\\u6d4b\\u91cf\\u7b49\\u7ea7).*";//*项目名称*施工地点*测量等级*
-            String regexIsAltitude = ".*(\\u9ad8).*(\\u7a0b).*";//*高*程*
-            String regexIsMilenum = ".*(\\u91cc).*(\\u7a0b).*";//*里*程*
+            String regexIsBaseinfo = ".*" + Convert.strToUnicode("项目名称") + ".*" + Convert.strToUnicode("施工地点") + ".*" + Convert.strToUnicode("测量等级") + ".*";//*项目名称*施工地点*测量等级*
+            String regexIsAltitude = ".*" + Convert.strToUnicode("高") + ".*" + Convert.strToUnicode("程") + ".*";//*高*程*
+            String regexIsMilenum = ".*" + Convert.strToUnicode("里") + ".*" + Convert.strToUnicode("程") + ".*";//*里*程*
             String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形式
 
             while (cellIterator.hasNext()) {
@@ -145,7 +145,7 @@ public class ExcelManager {
                             colMilenum = colString;
                         }
                         if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且跟里程号的字符串形式匹配
-//                            isValidRow = true;
+
                             String[] a = valueString.substring(1).split("\\+");
                             thisRowMilenum = Double.parseDouble(a[0]) * 1000 + Double.parseDouble(a[1]);
                         }
