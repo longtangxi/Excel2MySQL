@@ -63,9 +63,11 @@ public class Bridge {
                 .append(",`" + Altitude.PROJECT_ID + "`")
                 .append(",`" + Altitude.ADDR_DOT + "`")
                 .append(",`" + Altitude.IS_INIT + "`")
-                .append(",`" + Altitude.FOCUs_ID + "`")
+                .append(",`" + Altitude.FOCUS_ID + "`")
+                .append(",`" + Altitude.CPNUM + "`")
+                .append(",`" + Altitude.MEASURENUM + "`")
                 .append(") ")
-                .append("values(?,?,?,?,?,?,?,?,?,?,?)");
+                .append("values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
         PreparedStatement pSmt = db.getPreparedStatement(insertManySQL.toString());
         if (pSmt == null) {
             try {
@@ -77,9 +79,9 @@ public class Bridge {
 
         for (SheetBean.DotBean dotBean : sheetBean.getList()) {
             try {
-                pSmt.setDouble(1, dotBean.getMilenum());
+                pSmt.setBigDecimal(1, dotBean.getMilenum());
                 pSmt.setTimestamp(2, new Timestamp(dotBean.getDate().getTime()));
-                pSmt.setDouble(3, dotBean.getAltitude());
+                pSmt.setBigDecimal(3, dotBean.getAltitude());
                 Timestamp current = new Timestamp(new Date().getTime());
                 pSmt.setTimestamp(4, current);
                 pSmt.setTimestamp(5, current);
@@ -89,6 +91,8 @@ public class Bridge {
                 pSmt.setString(9, sheetBean.getSheetName());
                 pSmt.setInt(10, dotBean.isInitPoint() ? 1 : 0);
                 pSmt.setInt(11, sheetBean.getFoucusID());
+                pSmt.setString(12, dotBean.getCp_num());
+                pSmt.setString(13, dotBean.getMeasure_num());
                 pSmt.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();

@@ -2,8 +2,10 @@ package com.example;
 
 
 import com.xiaoleilu.hutool.convert.Convert;
+import com.xiaoleilu.hutool.lang.Console;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -16,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -95,6 +98,7 @@ public class ExcelManager {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
         int colMilenum = -1;
+        int colComment = -1;
         Iterator<Row> iterator = sheet.iterator();//获取行的迭代器
         while (iterator.hasNext()) {
 
@@ -104,10 +108,13 @@ public class ExcelManager {
 
             Cell cell;
             double thisRowMilenum = -1f;//该行对应的里程号
+            String thisRowDotnum = "";//该行对应的测点号
+            String thisRowCPnum = "";//该行备注中对应的CP号
             boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
             String regexIsBaseinfo = ".*" + Convert.strToUnicode("项目名称") + ".*" + Convert.strToUnicode("施工地点") + ".*" + Convert.strToUnicode("测量等级") + ".*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*" + Convert.strToUnicode("高") + ".*" + Convert.strToUnicode("程") + ".*";//*高*程*
             String regexIsMilenum = ".*" + Convert.strToUnicode("里") + ".*" + Convert.strToUnicode("程") + ".*";//*里*程*
+            String regexIsComment = ".*" + Convert.strToUnicode("对应CP") + ".*" + Convert.strToUnicode("点号") + ".*";//对应CP 点号
             String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形式
 
             while (cellIterator.hasNext()) {
@@ -144,11 +151,21 @@ public class ExcelManager {
                         if (isMilenum && colMilenum == -1) {
                             colMilenum = colString;
                         }
-                        if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且跟里程号的字符串形式匹配
+                        if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且该单元格的值跟里程号的字符串形式匹配
 
                             String[] a = valueString.substring(1).split("\\+");
                             thisRowMilenum = Double.parseDouble(a[0]) * 1000 + Double.parseDouble(a[1]);
+                            if (row.getCell(0).getCellTypeEnum() == CellType.STRING && thisRowDotnum.equals("")) {
+                                thisRowDotnum = row.getCell(0).getStringCellValue();
+                                Console.log("该行的点号是：" + thisRowDotnum);
+                            }
                         }
+
+                        boolean isComment = valueString.matches(regexIsComment);
+                        if (isComment && colComment == -1) {
+                            colComment = colString;
+                        }
+
                         break;
                     case _NONE:
                         break;
@@ -169,11 +186,21 @@ public class ExcelManager {
                     /*获取高程值*/
                         //如果该列代表高程值&&且该行为有效数据行
                         if (altitudesMap.keySet().contains(colNumeric) && thisRowMilenum > 0) {
+                            if (row.getCell(0).getCellTypeEnum() == CellType.NUMERIC && thisRowDotnum.equals("")) {
+                                thisRowDotnum = (int) row.getCell(0).getNumericCellValue() + "";
+//                                Console.log("该行的点号是：" + thisRowDotnum);
+                            }
+                            if (colComment != -1 && thisRowCPnum.equals("")) {//该列是里程号并且该单元格的值跟里程号的字符串形式匹配
+                                thisRowCPnum = row.getCell(colComment).getStringCellValue();
+//                                Console.log("该行的CP点号是：" + thisRowCPnum);
+                            }
                             date = colDateMap.get(colNumeric);
                             SheetBean.DotBean dotBean = new SheetBean.DotBean();
                             dotBean.setDate(date);
-                            dotBean.setMilenum(thisRowMilenum);
-                            dotBean.setAltitude(valueNumeric);
+                            dotBean.setMilenum(BigDecimal.valueOf(thisRowMilenum));
+                            dotBean.setAltitude(BigDecimal.valueOf(valueNumeric));
+                            dotBean.setCp_num(thisRowCPnum);
+                            dotBean.setMeasure_num(thisRowDotnum);
                             if (!isInitPoint) {
                                 //如果该行之前的高程列还没有值，就就将其作为初始值（ps：后期还得改逻辑）
                                 dotBean.setInitPoint(true);

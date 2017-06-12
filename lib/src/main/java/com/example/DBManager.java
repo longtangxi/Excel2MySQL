@@ -49,14 +49,6 @@ public class DBManager {
             String passwd = properties.getProperty("passwd");
             Connection conn = DriverManager.getConnection(url + database, user, passwd);
             return conn;
-//            stmt = conn.createStatement();
-//
-//            ResultSet rs = stmt.executeQuery("select * from msg");
-//            while (rs.next()) {
-//                System.out.println(rs.getInt(1) + "\t" +
-//                        rs.getString(2) + "\t" +
-//                        rs.getString(3));
-//            }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -86,17 +78,19 @@ public class DBManager {
         }
         return null;
     }
+
     public PreparedStatement getPreparedStatement(String sql, int resultSetType,
                                                   int resultSetConcurrency) {
 
         try {
-            PreparedStatement p = conn.prepareStatement(sql,resultSetType,resultSetConcurrency);
+            PreparedStatement p = conn.prepareStatement(sql, resultSetType, resultSetConcurrency);
             return p;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
+
     public void executeUpdate(String sql) throws Exception {
         Statement stmt = getStatement();
         if (stmt == null) {
@@ -108,7 +102,6 @@ public class DBManager {
             e.printStackTrace();
         }
     }
-
 
 
 }
