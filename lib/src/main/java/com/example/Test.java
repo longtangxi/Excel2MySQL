@@ -1,12 +1,10 @@
 package com.example;
 
-import org.nutz.dao.Dao;
-import org.nutz.dao.impl.NutDao;
-import org.nutz.ioc.Ioc;
-import org.nutz.ioc.impl.NutIoc;
-import org.nutz.ioc.loader.json.JsonLoader;
 
-import javax.sql.DataSource;
+import org.nutz.dao.Dao;
+import org.nutz.dao.util.DaoUp;
+
+import java.io.IOException;
 
 /**
  * Created by ty on 2017/6/8.
@@ -16,26 +14,41 @@ public class Test {
 
     public static void main(String[] args) {
 
-        Ioc ioc = new NutIoc(new JsonLoader("\\lib\\src\\dao.js"));
-        DataSource ds = ioc.get(DataSource.class);
-        Dao dao = new NutDao(ds);
-        ioc.get(Dao.class);
-        dao.create(Person.class, false);
+
+        try {
+            DaoUp.me().init(".\\lib\\assets\\db.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Dao dao = DaoUp.me().dao();
+        dao.create(Person.class, true);
         Person p = new Person();
-        p.setName("Test");
+        p.setName("Tom2");
+        p.setAge(56);
         dao.insert(p);
-        ioc.depose();//关闭Ioc容器
+//        Ioc ioc = new NutIoc(new JsonLoader("\\lib\\src\\dao.js"));
+//        DataSource ds = ioc.get(DataSource.class);
+//        Dao dao = new NutDao(ds);
+//        ioc.get(Dao.class);
+//        dao.create(Person.class, true);
+//        Person p = new Person();
+//        p.setName("Tom");
+//        dao.insert(p);
+//        ioc.depose();//关闭Ioc容器
+
 //        SimpleDataSource dataSource = new SimpleDataSource();
 //        dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1/st_work");
 //        dataSource.setUsername("root");
 //        dataSource.setPassword("root");
+//        // 创建一个NutDao实例,在真实项目中, NutDao通常由ioc托管, 使用注入的方式获得
 //        Dao dao = new NutDao(dataSource);
 //        dao.create(Person.class, false);
 //        Person p = new Person();
-//        p.setAge(32);
-//        p.setName("LOGIN");
+//        p.setAge(45);
+//        p.setName("ABC");
 //        dao.insert(p);
 //        Console.log(p.getId());
+
 //        Date d = null;
 //        try {
 //            Console.log(d.after(new Date()));

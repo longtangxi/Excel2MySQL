@@ -1,6 +1,8 @@
 package com.example;
 
 
+import com.example.bean.AltitudeBean;
+import com.example.bean.ConcernBean;
 import com.xiaoleilu.hutool.convert.Convert;
 import com.xiaoleilu.hutool.lang.Console;
 
@@ -8,8 +10,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
 
 public class ExcelManager {
 
-    static XSSFRow row;
+    private static String sheetName;
 
 
     public static void main(String[] args) {
@@ -48,22 +49,9 @@ public class ExcelManager {
             } else {
                 throw new Exception("文件必须以xls或者xlsx结尾");
             }
-            //构建一个高版本的EXCEL
-            XSSFWorkbook workbook = new XSSFWorkbook(fis);
+            XSSFWorkbook workbook = new XSSFWorkbook(fis);//构建一个高版本的EXCEL
 
-            SheetBean bean = new SheetBean();
-            //获取指定的sheet
-            XSSFSheet sheet = (XSSFSheet) getSheet(workbook, bean);
-            if (sheet == null) {
-                throw new Exception("没有找到指定的工作表");
-            }
-
-            getDataFromExcel(sheet, bean);//从Excel表中获取想要的信息
-
-            if (bean != null) {
-                Bridge.storeExcel2DB(bean);//获取成功，存数据库
-//            storeIntoDB(altitudeBean);
-            }
+            formatData(workbook);//开始格式化Excel数据
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         } catch (IOException e1) {
@@ -74,51 +62,61 @@ public class ExcelManager {
 
     }
 
-
-    /**
-     * 根据指定规则得到一个工作表sheet
-     *
-     * @param workbook
-     * @param SheetBean
-     * @return
-     */
-    private static Sheet getSheet(Workbook workbook, SheetBean SheetBean) {
+    private static void formatData(XSSFWorkbook workbook) {
+        XSSFSheet sheet = null;
         int shtNum = workbook.getNumberOfSheets();
+        ConcernBean concernBean = new ConcernBean();//重点段实体类
         for (int i = 0; i < shtNum; i++) {
-            String shtName = workbook.getSheetAt(i).getSheetName();//工作表名
-            if (shtName.matches(Convert.strToUnicode("下行路堤纵断面"))) {//下行路堤纵断面
-                SheetBean.setSheetName(shtName);
-                return workbook.getSheetAt(i);
+            //工作表名
+            sheetName = workbook.getSheetAt(i).getSheetName();
+            if (sheetName.matches(Convert.strToUnicode("下行路堤纵断面"))
+                    || sheetName.matches(Convert.strToUnicode("上行路堤纵断面"))
+                    || sheetName.matches(Convert.strToUnicode("下行底座板纵断面"))
+                    || sheetName.matches(Convert.strToUnicode("上行底座板纵断面"))
+                    || sheetName.matches(Convert.strToUnicode("下行轨道板纵断面"))
+                    || sheetName.matches(Convert.strToUnicode("上行轨道板纵断面"))) {
+                sheet = workbook.getSheetAt(i);
+                if (sheet != null) {
+                    LinkedList<AltitudeBean> points = new LinkedList<>();
+                    getDataFromExcel(sheet, concernBean, points);//从Excel表中获取想要的信息
+                    Console.log("正在读取：" + sheetName);
+                    if (points.size() > 0) {
+                        Bridge.storeExcel2DB(concernBean, points);//获取成功，存数据库
+
+                    }
+                }
             }
         }
-        return null;
+
+
     }
 
-    private static void getDataFromExcel(XSSFSheet sheet, SheetBean SheetBean) {
+
+    private static void getDataFromExcel(XSSFSheet sheet, ConcernBean concernBean, LinkedList<AltitudeBean> points) {
         TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
         TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
-        int colMilenum = -1;
-        int colComment = -1;
+        int colMilenum = -1;//里程号列 flag
+        int colComment = -1;//备注列 flag
         Iterator<Row> iterator = sheet.iterator();//获取行的迭代器
+        XSSFRow row;
         while (iterator.hasNext()) {
-
             row = (XSSFRow) iterator.next();//获得某行数据
-
-            Iterator<Cell> cellIterator = row.cellIterator();
+            Iterator<Cell> colIt = row.cellIterator();
 
             Cell cell;
             double thisRowMilenum = -1f;//该行对应的里程号
             String thisRowDotnum = "";//该行对应的测点号
             String thisRowCPnum = "";//该行备注中对应的CP号
             boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
+
             String regexIsBaseinfo = ".*" + Convert.strToUnicode("项目名称") + ".*" + Convert.strToUnicode("施工地点") + ".*" + Convert.strToUnicode("测量等级") + ".*";//*项目名称*施工地点*测量等级*
             String regexIsAltitude = ".*" + Convert.strToUnicode("高") + ".*" + Convert.strToUnicode("程") + ".*";//*高*程*
             String regexIsMilenum = ".*" + Convert.strToUnicode("里") + ".*" + Convert.strToUnicode("程") + ".*";//*里*程*
             String regexIsComment = ".*" + Convert.strToUnicode("对应CP") + ".*" + Convert.strToUnicode("点号") + ".*";//对应CP 点号
             String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形式
 
-            while (cellIterator.hasNext()) {
-                cell = cellIterator.next();
+            while (colIt.hasNext()) {
+                cell = colIt.next();
                 switch (cell.getCellTypeEnum()) {
                     case STRING://字符串
                         String valueString = cell.getStringCellValue();//cell的值
@@ -128,15 +126,18 @@ public class ExcelManager {
                         if (isBaseinfo) {
                             valueString = valueString.replaceAll("\\s+", "")
                                     .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
-                            SheetBean.setProjectName(getProjectName(valueString));//项目名称
-                            SheetBean.setProjectRange(getProjectRange(valueString));//项目里程范围
-                            SheetBean.setProjectType(getProjectType(valueString));//项目施工类型
-                            SheetBean.setAddrWork(getProjectAddr(valueString));//项目施工地点
-                            SheetBean.setLevel(getProjectLevel(valueString));//项目测量等级
+                            concernBean.setProjectName(getProjectName(valueString));//项目名称
+                            long[] range = getProjectRange(valueString);//项目里程范围
+                            concernBean.setStart(range[0]);
+                            concernBean.setEnd(range[1]);
+
+                            concernBean.setProjectType(getProjectType(valueString));//项目施工类型
+                            concernBean.setAddress(getProjectAddr(valueString));//项目施工地点
+                            concernBean.setLevel(getProjectLevel(valueString));//项目测量等级
                         }
 
                         boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
-                        if (isAltitude) {//如果包含匹配"高程",说明该列下的数据为高程值
+                        if (isAltitude) {//如果匹配"高程",说明该列下的数据为高程值
                             Iterator it = colDateMap.keySet().iterator();//获得存储好的日期所在列的集合
                             while (it.hasNext()) {
                                 Integer dateCol = (Integer) it.next();
@@ -147,8 +148,8 @@ public class ExcelManager {
                             }
 
                         }
-                        boolean isMilenum = valueString.matches(regexIsMilenum);//*里*程* 如果该列对应的是里程号,记录下来
-                        if (isMilenum && colMilenum == -1) {
+                        boolean isMileNo = valueString.matches(regexIsMilenum);//*里*程* 如果该列对应的是里程号,记录下来
+                        if (isMileNo && colMilenum == -1) {
                             colMilenum = colString;
                         }
                         if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且该单元格的值跟里程号的字符串形式匹配
@@ -182,6 +183,7 @@ public class ExcelManager {
                         if (date != null) {
                             //该日期下的列号
                             colDateMap.put(colNumeric, date);
+                            Console.log("该sheet中显示测量了：" + colDateMap.size() + "次");
                         }
                     /*获取高程值*/
                         //如果该列代表高程值&&且该行为有效数据行
@@ -195,18 +197,19 @@ public class ExcelManager {
 //                                Console.log("该行的CP点号是：" + thisRowCPnum);
                             }
                             date = colDateMap.get(colNumeric);
-                            SheetBean.DotBean dotBean = new SheetBean.DotBean();
-                            dotBean.setDate(date);
-                            dotBean.setMilenum(BigDecimal.valueOf(thisRowMilenum));
-                            dotBean.setAltitude(BigDecimal.valueOf(valueNumeric));
-                            dotBean.setCp_num(thisRowCPnum);
-                            dotBean.setMeasure_num(thisRowDotnum);
+                            AltitudeBean point = new AltitudeBean();
+                            point.setGmtMeasure(date);
+                            point.setMileNo(BigDecimal.valueOf(thisRowMilenum));
+                            point.setHeight(BigDecimal.valueOf(valueNumeric));
+                            point.setCpNo(thisRowCPnum);
+                            point.setMeasureNo(thisRowDotnum);
+                            point.setOnWhat(sheetName);
                             if (!isInitPoint) {
                                 //如果该行之前的高程列还没有值，就就将其作为初始值（ps：后期还得改逻辑）
-                                dotBean.setInitPoint(true);
+                                point.setBasepoint(true);
                                 isInitPoint = true;
                             }
-                            SheetBean.getList().add(dotBean);
+                            points.add(point);
                         }
                         break;
                     case FORMULA://公式
@@ -295,7 +298,7 @@ public class ExcelManager {
      *
      * @param valueString
      */
-    private static double[] getProjectRange(String valueString) {
+    private static long[] getProjectRange(String valueString) {
         String regex = "[k|K].*\\+\\d{1,3}";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(valueString);
@@ -303,20 +306,20 @@ public class ExcelManager {
             String[] lowAndHigh = valueString.substring(m.start(), m.end()).replaceAll("[k|K]", "").split("[～|~]");
             if (lowAndHigh.length == 2) {
                 String[] t = lowAndHigh[0].split("\\+");
-                double[] result = new double[2];
+                long[] result = new long[2];
                 if (t.length == 2) {
-                    double lower = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//小里程
+                    long lower = Long.parseLong(t[0]) * 1000 + Long.parseLong(t[1]);//小里程
                     result[0] = lower;
                 }
                 t = lowAndHigh[1].split("\\+");
                 if (t.length == 2) {
-                    double higher = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//大里程
+                    long higher = Long.parseLong(t[0]) * 1000 + Long.parseLong(t[1]);//大里程
                     result[1] = higher;
                 }
                 return result;
             }
         }
-        return new double[2];
+        return new long[2];
     }
 
     /**
