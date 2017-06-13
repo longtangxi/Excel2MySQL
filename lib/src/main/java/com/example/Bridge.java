@@ -7,6 +7,7 @@ import com.xiaoleilu.hutool.lang.Console;
 import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class Bridge {
 
         Dao dao = DaoUtil.getDao();
         dao.create(ConcernBean.class, false);
+        dao.create(AltitudeBean.class, false);
 
 
 //        DBManager db = DBManager.getInstance();
@@ -53,13 +55,22 @@ public class Bridge {
         Console.log(concernBean.toString());
         Dao dao = DaoUtil.getDao();
         dao.create(ConcernBean.class, false);
+        dao.insert(concernBean);
         List<ConcernBean> concernBeans = dao.query(ConcernBean.class
-                , Cnd.where("start", "=", concernBean.getStart()));
+                , Cnd.where("start", "=", concernBean.getStart())
+                        .and("end", "=", concernBean.getEnd()));//获取该重点段的主键ID
+        int concernID = -1;
         if (concernBeans.size() > 0) {
-            Console.log(concernBeans.get(0).getId());
+            concernID = concernBeans.get(0).getId();
         }
 
-        Console.log("该表共有：" + points.size() + " 个点");
+        for (AltitudeBean bean : points) {
+            bean.setPkConcernid(concernID);
+            bean.setGmtCreate(new Date());
+            bean.setGmtModified(new Date());
+        }
+        dao.insert(points);
+
 //        DBManager db = DBManager.getInstance();
 //
 //        try {

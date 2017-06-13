@@ -5,8 +5,10 @@ import org.nutz.dao.entity.annotation.ColType;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Comment;
 import org.nutz.dao.entity.annotation.Id;
+import org.nutz.dao.entity.annotation.Index;
 import org.nutz.dao.entity.annotation.Name;
 import org.nutz.dao.entity.annotation.Table;
+import org.nutz.dao.entity.annotation.TableIndexes;
 
 import java.math.BigDecimal;
 
@@ -15,7 +17,9 @@ import java.math.BigDecimal;
  */
 
 @Table("t_person") // 声明了Person对象的数据表
-public class Person { // 不会强制要求继承某个类
+@TableIndexes({@Index(name = "age", fields = {"age","a"}, unique = true), @Index(name = "a", fields = {"a"}, unique = true)})
+// 不会强制要求继承某个类
+public class Person {
     @Id // 表示该字段为一个自增长的Id,注意,是数中自增!!
     @ColDefine(unsigned = true, width = 9)
     private int id; // @Id与属性名称id没有对应关系.

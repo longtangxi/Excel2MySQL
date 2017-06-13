@@ -26,6 +26,11 @@ public class AltitudeBean {
     private Date gmtMeasure;
 
     @Column(hump = true)
+    @ColDefine(type = ColType.DATETIME)
+    @Comment(value = "提交日期")
+    private Date gmtSubmit;
+
+    @Column(hump = true)
     @ColDefine(type = ColType.FLOAT, width = 18, precision = 5)
     @Comment(value = "里程号")
     private BigDecimal mileNo;
@@ -47,7 +52,6 @@ public class AltitudeBean {
 
     @Column(hump = true)
     @Comment(value = "是否为基准点")
-    @ColDefine(unsigned = true)
     private boolean isBasepoint;
 
     @Column(hump = true)
@@ -73,7 +77,7 @@ public class AltitudeBean {
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 2)
     @Comment(value = "外键,施工类型ID")
-    private int pkid;
+    private int pkTypeid;
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 4)
@@ -170,6 +174,14 @@ public class AltitudeBean {
         this.measureNo = measureNo;
     }
 
+    public Date getGmtSubmit() {
+        return gmtSubmit;
+    }
+
+    public void setGmtSubmit(Date gmtSubmit) {
+        this.gmtSubmit = gmtSubmit;
+    }
+
     public String getCpNo() {
         return cpNo;
     }
@@ -186,12 +198,12 @@ public class AltitudeBean {
         this.pkPid = pkPid;
     }
 
-    public int getPkid() {
-        return pkid;
+    public int getPkTypeid() {
+        return pkTypeid;
     }
 
-    public void setPkid(int pkid) {
-        this.pkid = pkid;
+    public void setPkTypeid(int pkTypeid) {
+        this.pkTypeid = pkTypeid;
     }
 
     public int getPkConcernid() {
