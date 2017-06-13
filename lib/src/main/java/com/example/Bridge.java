@@ -1,11 +1,16 @@
 package com.example;
 
+import com.example.bean.SheetBean;
 import com.example.table.Altitude;
 import com.example.table.Focus;
 import com.example.table.Project;
 import com.xiaoleilu.hutool.convert.Convert;
 import com.xiaoleilu.hutool.lang.Console;
 
+import org.nutz.dao.Dao;
+import org.nutz.dao.util.DaoUp;
+
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,6 +53,13 @@ public class Bridge {
 
     public static void storeExcel2DB(SheetBean sheetBean) {
         DBManager db = DBManager.getInstance();
+
+        try {
+            DaoUp.me().init(".\\lib\\assets\\db.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Dao dao = DaoUp.me().dao();
         setBean(sheetBean, db);//完善Bean类
 
         StringBuilder insertManySQL = new StringBuilder()

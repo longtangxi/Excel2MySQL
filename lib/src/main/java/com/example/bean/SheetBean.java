@@ -1,4 +1,4 @@
-package com.example;
+package com.example.bean;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -105,7 +105,7 @@ public class SheetBean {
         this.projectName = projectName;
     }
 
-    static class DotBean {
+    public  static class DotBean {
         int id;
         BigDecimal milenum;//里程号
         Date date;//测量日期
