@@ -7,7 +7,6 @@ import org.nutz.dao.entity.annotation.Comment;
 import org.nutz.dao.entity.annotation.Id;
 import org.nutz.dao.entity.annotation.Table;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -33,18 +32,23 @@ public class ConcernBean {
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 2)
+    @Comment(value = "外键,工程ID")
+    private int pkPid;
+
+    @Column(hump = true)
+    @ColDefine(unsigned = true, width = 2)
     @Comment(value = "外键,施工类型ID")
-    private int pkid;
+    private int pkTypeid;
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 18, precision = 5)
     @Comment(value = "范围")
-    private BigDecimal start;
+    private long start;
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 18, precision = 5)
     @Comment(value = "范围")
-    private BigDecimal end;
+    private long end;
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 1)
@@ -74,6 +78,14 @@ public class ConcernBean {
         this.level = level;
     }
 
+    public int getPkPid() {
+        return pkPid;
+    }
+
+    public void setPkPid(int pkPid) {
+        this.pkPid = pkPid;
+    }
+
     public int getId() {
         return id;
     }
@@ -98,27 +110,27 @@ public class ConcernBean {
         this.gmtModified = gmtModified;
     }
 
-    public int getPkid() {
-        return pkid;
+    public int getPkTypeid() {
+        return pkTypeid;
     }
 
-    public void setPkid(int pkid) {
-        this.pkid = pkid;
+    public void setPkTypeid(int pkTypeid) {
+        this.pkTypeid = pkTypeid;
     }
 
-    public BigDecimal getStart() {
+    public long getStart() {
         return start;
     }
 
-    public void setStart(BigDecimal start) {
+    public void setStart(long start) {
         this.start = start;
     }
 
-    public BigDecimal getEnd() {
+    public long getEnd() {
         return end;
     }
 
-    public void setEnd(BigDecimal end) {
+    public void setEnd(long end) {
         this.end = end;
     }
 
@@ -137,12 +149,23 @@ public class ConcernBean {
     public void setProjectType(String projectType) {
         this.projectType = projectType;
     }
-    //    int foucusID;
-//    double[] projectRange;
-//    String addrWork;
-//    String projectName;
-//    String projectType;
-//
-//    LinkedList<SheetBean.DotBean> list = new LinkedList<>();//数据集
-//    String sheetName;
+
+    @Override
+    public String toString() {
+
+        return new StringBuilder().append(ConcernBean.class.getSimpleName())
+                .append("[")
+                .append("id:" + id)
+//                .append(",gmtCreate:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtCreate.getTime()))
+//                .append(",gmtModified:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtModified.getTime()))
+                .append(",projectName:" + projectName)
+                .append(",pkPid:" + pkPid)
+                .append(",projectType:" + projectType)
+                .append(",pkTypeid:" + pkTypeid)
+                .append(",level:" + level)
+                .append(",start:" + start)
+                .append(",end:" + end)
+                .append(",address:" + address)
+                .toString();
+    }
 }

@@ -2,13 +2,13 @@ package com.example;
 
 import com.example.bean.AltitudeBean;
 import com.example.bean.ConcernBean;
-import com.example.table.Project;
 import com.xiaoleilu.hutool.lang.Console;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import org.nutz.dao.Cnd;
+import org.nutz.dao.Dao;
+
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by ty on 2017/6/8.
@@ -18,34 +18,48 @@ public class Bridge {
 
 
     public static void main(String[] args) {
-        DBManager db = DBManager.getInstance();
-        /*先完善bean的信息*/
-        String querySQL = "select id,name from " + Project.tableName;
-        PreparedStatement pstmt = db.getPreparedStatement(querySQL//传入控制结果集可滚动、可更新的参数
-                , ResultSet.TYPE_SCROLL_INSENSITIVE
-                , ResultSet.CONCUR_UPDATABLE);
-        try {
-            ResultSet rs = pstmt.executeQuery();
-            rs.last();
-            int rowCount = rs.getRow();
-            for (int i = 1; i <= rowCount; i++) {
-                rs.absolute(i);
-                if ("杭深线".matches(".*" + rs.getString(2) + ".*")) {
 
-                    Console.log(rs.getInt(1));
-                    break;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Dao dao = DaoUtil.getDao();
+        dao.create(ConcernBean.class, false);
+
+
+//        DBManager db = DBManager.getInstance();
+//        /*先完善bean的信息*/
+//        String querySQL = "select id,name from " + Project.tableName;
+//        PreparedStatement pstmt = db.getPreparedStatement(querySQL//传入控制结果集可滚动、可更新的参数
+//                , ResultSet.TYPE_SCROLL_INSENSITIVE
+//                , ResultSet.CONCUR_UPDATABLE);
+//        try {
+//            ResultSet rs = pstmt.executeQuery();
+//            rs.last();
+//            int rowCount = rs.getRow();
+//            for (int i = 1; i <= rowCount; i++) {
+//                rs.absolute(i);
+//                if ("杭深线".matches(".*" + rs.getString(2) + ".*")) {
+//
+//                    Console.log(rs.getInt(1));
+//                    break;
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
     private static DBManager mDBManager;
 
     public static void storeExcel2DB(ConcernBean concernBean, LinkedList<AltitudeBean> points) {
-        Console.log("该表共有："+points.size()+" 个点");
+        Console.log(concernBean.toString());
+        Dao dao = DaoUtil.getDao();
+        dao.create(ConcernBean.class, false);
+        List<ConcernBean> concernBeans = dao.query(ConcernBean.class
+                , Cnd.where("start", "=", concernBean.getStart()));
+        if (concernBeans.size() > 0) {
+            Console.log(concernBeans.get(0).getId());
+        }
+
+        Console.log("该表共有：" + points.size() + " 个点");
 //        DBManager db = DBManager.getInstance();
 //
 //        try {
@@ -110,7 +124,6 @@ public class Bridge {
     /**
      * 根据表格内容获取数据库表示
      *
-     * @param bean
      * @param db
      */
     private static void setBean(DBManager db) {

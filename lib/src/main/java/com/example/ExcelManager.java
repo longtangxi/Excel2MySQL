@@ -127,9 +127,9 @@ public class ExcelManager {
                             valueString = valueString.replaceAll("\\s+", "")
                                     .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
                             concernBean.setProjectName(getProjectName(valueString));//项目名称
-                            double[] range = getProjectRange(valueString);//项目里程范围
-                            concernBean.setStart(BigDecimal.valueOf(range[0]));
-                            concernBean.setEnd(BigDecimal.valueOf(range[1]));
+                            long[] range = getProjectRange(valueString);//项目里程范围
+                            concernBean.setStart(range[0]);
+                            concernBean.setEnd(range[1]);
 
                             concernBean.setProjectType(getProjectType(valueString));//项目施工类型
                             concernBean.setAddress(getProjectAddr(valueString));//项目施工地点
@@ -298,7 +298,7 @@ public class ExcelManager {
      *
      * @param valueString
      */
-    private static double[] getProjectRange(String valueString) {
+    private static long[] getProjectRange(String valueString) {
         String regex = "[k|K].*\\+\\d{1,3}";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(valueString);
@@ -306,20 +306,20 @@ public class ExcelManager {
             String[] lowAndHigh = valueString.substring(m.start(), m.end()).replaceAll("[k|K]", "").split("[～|~]");
             if (lowAndHigh.length == 2) {
                 String[] t = lowAndHigh[0].split("\\+");
-                double[] result = new double[2];
+                long[] result = new long[2];
                 if (t.length == 2) {
-                    double lower = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//小里程
+                    long lower = Long.parseLong(t[0]) * 1000 + Long.parseLong(t[1]);//小里程
                     result[0] = lower;
                 }
                 t = lowAndHigh[1].split("\\+");
                 if (t.length == 2) {
-                    double higher = Double.parseDouble(t[0]) * 1000 + Double.parseDouble(t[1]);//大里程
+                    long higher = Long.parseLong(t[0]) * 1000 + Long.parseLong(t[1]);//大里程
                     result[1] = higher;
                 }
                 return result;
             }
         }
-        return new double[2];
+        return new long[2];
     }
 
     /**
