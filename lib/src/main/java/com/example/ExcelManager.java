@@ -162,7 +162,7 @@ public class ExcelManager {
     private static void getDataFromExcel(XSSFSheet sheet, LinkedList<AltitudeBean> points) {
 
         TreeMap<Integer, Date> dates = new TreeMap<>();//日期列
-        LinkedHashMap<Integer, Integer> times = new LinkedHashMap<>();//期数列
+        TreeMap<Integer, Integer> times = new TreeMap<>();//期数列
         LinkedHashMap<Integer, Date> heights = new LinkedHashMap<>();//高程列
         //
         int measurePointColumn = -1;//测点列
@@ -197,12 +197,43 @@ public class ExcelManager {
                 /*----------日期----------*/
 
                 /*----------期数----------*/
-                int time = getTimesFromCell(cell);//返回表格中实际显示的期数，初测返回1
+                int time = getTimesFromCell(cell);//返回表格中实际显示的期数，初测返回0
                 if (time != -1) {
                     if (times.values().contains(time)) {
                         times.put(column, ++time);
+                    }
+                    if (times.size() == 0 && time == 0) {
+                        times.put(column, ++time);
+                    }
+                    if (times.size() == 0 && time == 1) {
+                        times.put(column, ++time);
+                    }
+                    if (times.size() != 0 && time == 0 && times.values().contains(1)) {
+                        for (int i : times.values()) {
+                            i++;
+                        }
+                    }
+                    if (times.size() != 0 && time == 0 && !times.values().contains(1)) {
+                        times.put(column, 1);
+                    }
+
+                }
+                if (dates.size() > 1 && times.size() == dates.size()) {
+                    //期数充填结束
+                    Iterator it = times.keySet().iterator();
+                    if (times.values().contains(1)) {
+                        while (it.hasNext()) {
+                            int k = (int) it.next();
+                            times.put(k, ++k);
+                        }
                     } else {
-                        times.put(column, time);
+                        while (it.hasNext()) {
+                            int k = (int) it.next();
+                            if (times.get(k) == 0) {
+                                times.put(k, 1);
+                                break;
+                            }
+                        }
                     }
                 }
                 /*----------期数----------*/
@@ -276,6 +307,9 @@ public class ExcelManager {
 
             }
         }
+        Console.log(times);
+        Console.log(heights);
+
 
     }
 
@@ -373,9 +407,9 @@ public class ExcelManager {
 
         String val = cell.getStringCellValue();
         if (val.matches(".*" + Convert.strToUnicode("初") + ".*" + Convert.strToUnicode("测") + ".*")) {
-            return 1;
+            return 0;
         }
-        if (val.matches(".*" + Convert.strToUnicode("第") + ".*\\d+" + Convert.strToUnicode("次"))) {
+        if (val.matches(".*" + Convert.strToUnicode("第") + ".*\\d+" + Convert.strToUnicode("次") + ".*")) {
 
             Pattern p = Pattern.compile("\\d+");
             Matcher m = p.matcher(val);

@@ -5,7 +5,9 @@ import org.nutz.dao.entity.annotation.ColType;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Comment;
 import org.nutz.dao.entity.annotation.Id;
+import org.nutz.dao.entity.annotation.Index;
 import org.nutz.dao.entity.annotation.Table;
+import org.nutz.dao.entity.annotation.TableIndexes;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -15,6 +17,7 @@ import java.util.Date;
  */
 
 @Table("t_altitude")
+@TableIndexes(@Index(name = "uk_point_gmtmeasure", fields = {"measureNo", "gmtMeasure"}, unique = true))
 public class AltitudeBean {
     @Id
     @ColDefine(unsigned = true, width = 9)
@@ -85,6 +88,11 @@ public class AltitudeBean {
     private int pkConcernid;
 
     @Column(hump = true)
+    @ColDefine(unsigned = true, width = 1)
+    @Comment(value = "测量期数")
+    private int times;
+
+    @Column(hump = true)
     @ColDefine(type = ColType.DATETIME)
     @Comment(value = "创建日期")
     private Date gmtCreate;
@@ -93,6 +101,14 @@ public class AltitudeBean {
     @ColDefine(type = ColType.DATETIME)
     @Comment(value = "更改日期")
     private Date gmtModified;
+
+    public int getTimes() {
+        return times;
+    }
+
+    public void setTimes(int times) {
+        this.times = times;
+    }
 
     public int getId() {
         return id;
