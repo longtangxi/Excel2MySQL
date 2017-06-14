@@ -162,7 +162,8 @@ public class ExcelManager {
     private static void getDataFromExcel(XSSFSheet sheet, LinkedList<AltitudeBean> points) {
 
         TreeMap<Integer, Date> dates = new TreeMap<>();//日期列
-        TreeMap<Integer, Integer> times = new TreeMap<>();//期数列
+        TreeMap<Integer, Integer> srcTimes = new TreeMap<>();//期数列,TreeMap默认升序
+        TreeMap<Integer, Integer> dstTimes = new TreeMap<>();//期数列,TreeMap默认升序
         LinkedHashMap<Integer, Date> heights = new LinkedHashMap<>();//高程列
         //
         int measurePointColumn = -1;//测点列
@@ -199,42 +200,12 @@ public class ExcelManager {
                 /*----------期数----------*/
                 int time = getTimesFromCell(cell);//返回表格中实际显示的期数，初测返回0
                 if (time != -1) {
-                    if (times.values().contains(time)) {
-                        times.put(column, ++time);
-                    }
-                    if (times.size() == 0 && time == 0) {
-                        times.put(column, ++time);
-                    }
-                    if (times.size() == 0 && time == 1) {
-                        times.put(column, ++time);
-                    }
-                    if (times.size() != 0 && time == 0 && times.values().contains(1)) {
-                        for (int i : times.values()) {
-                            i++;
-                        }
-                    }
-                    if (times.size() != 0 && time == 0 && !times.values().contains(1)) {
-                        times.put(column, 1);
+                    if (srcTimes.values().contains(time) || time == 0 || time == 1) {
+                        srcTimes.put(column, ++time);
+                    } else {
+                        srcTimes.put(column, time);
                     }
 
-                }
-                if (dates.size() > 1 && times.size() == dates.size()) {
-                    //期数充填结束
-                    Iterator it = times.keySet().iterator();
-                    if (times.values().contains(1)) {
-                        while (it.hasNext()) {
-                            int k = (int) it.next();
-                            times.put(k, ++k);
-                        }
-                    } else {
-                        while (it.hasNext()) {
-                            int k = (int) it.next();
-                            if (times.get(k) == 0) {
-                                times.put(k, 1);
-                                break;
-                            }
-                        }
-                    }
                 }
                 /*----------期数----------*/
 
@@ -242,15 +213,31 @@ public class ExcelManager {
                 boolean isHeigtColumn = isHeightCoumn(cell);
                 if (isHeigtColumn) {
                     Iterator it = dates.keySet().iterator();
+                    int leftColumn = -1;
                     while (it.hasNext()) {
-                        int leftColumn = (int) it.next();
-                        while (it.hasNext()) {
-                            int rightColumn = (int) it.next();
-                            if (column >= leftColumn && column < rightColumn) {
-                                heights.put(column, dates.get(leftColumn));
-                            }
+                        int rightColumn = (int) it.next();
+                        if (column >= leftColumn && column < rightColumn) {
+                            heights.put(column, dates.get(leftColumn));//高程列及其对应的日期
+                            break;
+                        } else if (column == rightColumn) {
+                            heights.put(column, dates.get(rightColumn));//最后一列，没有下一列与之对比
+                            break;
+                        } else {
+                            leftColumn = rightColumn;
                         }
                     }
+//                    it = srcTimes.keySet().iterator();
+//                    while (it.hasNext()) {
+//                        int leftColumn = (int) it.next();
+//                        while (it.hasNext()) {
+//                            int rightColumn = (int) it.next();
+//                            if (column >= leftColumn && column < rightColumn) {
+//                                dstTimes.put(column, srcTimes.get(leftColumn));//高程列及其测量的期数
+//                            }
+//                        }
+//                    }
+
+
                 }
                 /*----------高程----------*/
 
@@ -294,6 +281,7 @@ public class ExcelManager {
                         point.setMileNo(mileNo);
                         point.setHeight(height);
                         point.setGmtMeasure(heights.get(column));
+                        point.setTimes(dstTimes.get(column));
                         point.setOnWhat(sheetName);
                         point.setCpNo(cpNo);
                         if (!isInitPoint) {
@@ -307,7 +295,7 @@ public class ExcelManager {
 
             }
         }
-        Console.log(times);
+        Console.log(srcTimes);
         Console.log(heights);
 
 

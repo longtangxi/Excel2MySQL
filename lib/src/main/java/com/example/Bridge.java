@@ -24,29 +24,6 @@ public class Bridge {
         dao.create(ConcernBean.class, false);
         dao.create(AltitudeBean.class, false);
 
-
-//        DBManager db = DBManager.getInstance();
-//        /*先完善bean的信息*/
-//        String querySQL = "select id,name from " + Project.tableName;
-//        PreparedStatement pstmt = db.getPreparedStatement(querySQL//传入控制结果集可滚动、可更新的参数
-//                , ResultSet.TYPE_SCROLL_INSENSITIVE
-//                , ResultSet.CONCUR_UPDATABLE);
-//        try {
-//            ResultSet rs = pstmt.executeQuery();
-//            rs.last();
-//            int rowCount = rs.getRow();
-//            for (int i = 1; i <= rowCount; i++) {
-//                rs.absolute(i);
-//                if ("杭深线".matches(".*" + rs.getString(2) + ".*")) {
-//
-//                    Console.log(rs.getInt(1));
-//                    break;
-//                }
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-
     }
 
     private static DBManager mDBManager;
