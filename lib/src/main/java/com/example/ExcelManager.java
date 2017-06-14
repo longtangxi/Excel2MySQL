@@ -216,28 +216,38 @@ public class ExcelManager {
                     int leftColumn = -1;
                     while (it.hasNext()) {
                         int rightColumn = (int) it.next();
-                        if (column >= leftColumn && column < rightColumn) {
+                        if (column < rightColumn) {
                             heights.put(column, dates.get(leftColumn));//高程列及其对应的日期
                             break;
-                        } else if (column == rightColumn) {
+                        } else if (!it.hasNext()) {
+                            //到达最后一列
                             heights.put(column, dates.get(rightColumn));//最后一列，没有下一列与之对比
                             break;
                         } else {
+                            //左闭右开，如果不在该区间
                             leftColumn = rightColumn;
                         }
+
+
                     }
-//                    it = srcTimes.keySet().iterator();
-//                    while (it.hasNext()) {
-//                        int leftColumn = (int) it.next();
-//                        while (it.hasNext()) {
-//                            int rightColumn = (int) it.next();
-//                            if (column >= leftColumn && column < rightColumn) {
-//                                dstTimes.put(column, srcTimes.get(leftColumn));//高程列及其测量的期数
-//                            }
-//                        }
-//                    }
+                    leftColumn = -1;
+                    it = srcTimes.keySet().iterator();
+                    while (it.hasNext()) {
+                        int rightColumn = (int) it.next();
+                        if (column < rightColumn) {
+                            dstTimes.put(column, srcTimes.get(leftColumn));//高程列及其对应的测量期数
+                            break;
+                        } else if (!it.hasNext()) {
+                            //到达最后一列
+                            dstTimes.put(column, srcTimes.get(rightColumn));//最后一列，没有下一列与之对比
+                            break;
+                        } else {
+                            //左闭右开，如果不在该区间
+                            leftColumn = rightColumn;
+                        }
 
 
+                    }
                 }
                 /*----------高程----------*/
 
