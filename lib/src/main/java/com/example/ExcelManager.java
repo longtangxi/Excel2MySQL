@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -24,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -66,165 +68,323 @@ public class ExcelManager {
         XSSFSheet sheet = null;
         int shtNum = workbook.getNumberOfSheets();
         ConcernBean concernBean = new ConcernBean();//重点段实体类
+
         for (int i = 0; i < shtNum; i++) {
-            //工作表名
-            sheetName = workbook.getSheetAt(i).getSheetName();
-            if (sheetName.matches(Convert.strToUnicode("下行路堤纵断面"))
-                    || sheetName.matches(Convert.strToUnicode("上行路堤纵断面"))
-                    || sheetName.matches(Convert.strToUnicode("下行底座板纵断面"))
-                    || sheetName.matches(Convert.strToUnicode("上行底座板纵断面"))
-                    || sheetName.matches(Convert.strToUnicode("下行轨道板纵断面"))
-                    || sheetName.matches(Convert.strToUnicode("上行轨道板纵断面"))) {
+            sheetName = workbook.getSheetAt(i).getSheetName();//从观测成果sheet中获取基本信息
+            if (sheetName.matches(".*" + Convert.strToUnicode("观测成果") + "$")) {
                 sheet = workbook.getSheetAt(i);
                 if (sheet != null) {
-                    LinkedList<AltitudeBean> points = new LinkedList<>();
-                    getDataFromExcel(sheet, concernBean, points);//从Excel表中获取想要的信息
                     Console.log("正在读取：" + sheetName);
-                    if (points.size() > 0) {
-                        Bridge.storeExcel2DB(concernBean, points);//获取成功，存数据库
+                    getInfoFromExcel(sheet, concernBean);//从Excel表中获取想要的信息
+                }
+            }
+        }
 
+        for (int i = 0; i < shtNum; i++) {
+            //工作表名
+            sheetName = workbook.getSheetAt(i).getSheetName();//从纵断面sheet获取数据
+            if (sheetName.matches("^" + Convert.strToUnicode("下行路堤纵断面") + "$")
+                    || sheetName.matches("^" + Convert.strToUnicode("上行路堤纵断面") + "$")
+                    || sheetName.matches("^" + Convert.strToUnicode("下行底座板纵断面") + "$")
+                    || sheetName.matches("^" + Convert.strToUnicode("上行底座板纵断面") + "$")
+                    || sheetName.matches("^" + Convert.strToUnicode("下行轨道板纵断面") + "$")
+                    || sheetName.matches("^" + Convert.strToUnicode("上行轨道板纵断面") + "$")) {
+                sheet = workbook.getSheetAt(i);
+                if (sheet != null) {
+                    Console.log("正在读取：" + sheetName);
+                    LinkedList<AltitudeBean> points = new LinkedList<>();
+                    getDataFromExcel(sheet, points);//从Excel表中获取想要的信息
+                    if (points.size() > 0) {
+                        Console.log("concernBean:" + concernBean.toString());
+                        Console.log("points:" + points.size());
+
+                        Bridge.storeExcel2DB(concernBean, points);//获取成功，存数据库
                     }
                 }
             }
         }
 
+    }
+
+    private static void getInfoFromExcel(XSSFSheet sheet, ConcernBean concernBean) {
+        Iterator<Row> rowIt = sheet.iterator();//获取行的迭代器
+        XSSFRow row;
+        while (rowIt.hasNext()) {
+            row = (XSSFRow) rowIt.next();//获得某行数据
+            Iterator<Cell> colIt = row.cellIterator();
+            Cell cell;
+            while (colIt.hasNext()) {
+                cell = colIt.next();
+                if (cell.getCellTypeEnum() == CellType.STRING) {
+                    String valStr = cell.getStringCellValue();
+                    if (valStr.matches(".*" + Convert.strToUnicode("观测成果"))) {
+                        concernBean.setName(valStr);//项目名称
+                        String regex = "[K|k].*\\d{1,3}";//
+
+                        Pattern p = Pattern.compile(regex);
+                        Matcher m = p.matcher(valStr);
+                        while (m.find()) {
+                            String mile = valStr.substring(m.start(), m.end());//K647+050-K647+350
+                            mile = mile.replaceAll("[k|K]", "");//647+050-647+350
+                            String[] startAndEnd = mile.split("[~|-]");//[647+050,647+350]
+                            if (startAndEnd.length == 2) {
+                                String[] startStr = startAndEnd[0].split("\\+");
+                                long startLong = Long.parseLong(startStr[0]) * 1000 + Long.parseLong(startStr[1]);
+                                concernBean.setStart(startLong);
+                                String[] endStr = startAndEnd[1].split("\\+");
+                                long endLong = Long.parseLong(endStr[0]) * 1000 + Long.parseLong(endStr[1]);
+                                concernBean.setEnd(endLong);
+                            }
+                        }
+                    }
+                }
+//                        if (valStr.matches(".*" + Convert.strToUnicode("总第") + ".*" + Convert.strToUnicode("期"))) {
+//
+//                        }
+//
+//                        valStr = valStr.replaceAll("\\s+", "")
+//                                .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
+//                        concernBean.setProjectName(getProjectName(valStr));//项目名称
+//                        long[] range = getProjectRange(valStr);//项目里程范围
+//                        concernBean.setStart(range[0]);
+//                        concernBean.setEnd(range[1]);
+//
+//                        concernBean.setProjectType(getProjectType(valStr));//项目施工类型
+//                        concernBean.setAddress(getProjectAddr(valStr));//项目施工地点
+//                        concernBean.setLevel(getProjectLevel(valStr));//项目测量等级
+
+            }
+        }
 
     }
 
 
-    private static void getDataFromExcel(XSSFSheet sheet, ConcernBean concernBean, LinkedList<AltitudeBean> points) {
-        TreeMap<Integer, Date> colDateMap = new TreeMap<>();//日期Map  <列号，日期>
-        TreeMap<Integer, Date> altitudesMap = new TreeMap<>();//高程列号及对应的日期Map  <列号，日期>
-        int colMilenum = -1;//里程号列 flag
-        int colComment = -1;//备注列 flag
+    private static void getDataFromExcel(XSSFSheet sheet, LinkedList<AltitudeBean> points) {
+
+        TreeMap<Integer, Date> dates = new TreeMap<>();//日期列
+        LinkedHashMap<Integer, Integer> times = new LinkedHashMap<>();//期数列
+        LinkedHashMap<Integer, Date> heights = new LinkedHashMap<>();//高程列
+        //
+        int measurePointColumn = -1;//测点列
+        int mileNoColumn = -1;//里程列
+        int cpNoColumn = -1;//cp点号列
+
         Iterator<Row> iterator = sheet.iterator();//获取行的迭代器
         XSSFRow row;
         while (iterator.hasNext()) {
             row = (XSSFRow) iterator.next();//获得某行数据
             Iterator<Cell> colIt = row.cellIterator();
 
-            Cell cell;
-            double thisRowMilenum = -1f;//该行对应的里程号
-            String thisRowDotnum = "";//该行对应的测点号
-            String thisRowCPnum = "";//该行备注中对应的CP号
-            boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
+            BigDecimal mileNo = null;//该行对应的里程号
+            String measureNo = null;//该行对应的测点号
+            String cpNo = null;//该行对应的CP号
 
-            String regexIsBaseinfo = ".*" + Convert.strToUnicode("项目名称") + ".*" + Convert.strToUnicode("施工地点") + ".*" + Convert.strToUnicode("测量等级") + ".*";//*项目名称*施工地点*测量等级*
-            String regexIsAltitude = ".*" + Convert.strToUnicode("高") + ".*" + Convert.strToUnicode("程") + ".*";//*高*程*
-            String regexIsMilenum = ".*" + Convert.strToUnicode("里") + ".*" + Convert.strToUnicode("程") + ".*";//*里*程*
-            String regexIsComment = ".*" + Convert.strToUnicode("对应CP") + ".*" + Convert.strToUnicode("点号") + ".*";//对应CP 点号
-            String regexIsMilenumString = "^[k|K]\\d{1,4}\\+\\d{1,3}$";//*里程号的字符串形式
+
+            Cell cell;
+            boolean isInitPoint = false;//逐行读取，一行中只有一个初始点
 
             while (colIt.hasNext()) {
                 cell = colIt.next();
-                switch (cell.getCellTypeEnum()) {
-                    case STRING://字符串
-                        String valueString = cell.getStringCellValue();//cell的值
-                        int colString = cell.getColumnIndex(); //cell所处的列
-                        /*获取数据集的基本信息*/
-                        boolean isBaseinfo = valueString.matches(regexIsBaseinfo);
-                        if (isBaseinfo) {
-                            valueString = valueString.replaceAll("\\s+", "")
-                                    .replaceAll("[\\uff1a|\\u003a]", "");//去除所有空格//去除中英字冒号
-                            concernBean.setProjectName(getProjectName(valueString));//项目名称
-                            long[] range = getProjectRange(valueString);//项目里程范围
-                            concernBean.setStart(range[0]);
-                            concernBean.setEnd(range[1]);
-
-                            concernBean.setProjectType(getProjectType(valueString));//项目施工类型
-                            concernBean.setAddress(getProjectAddr(valueString));//项目施工地点
-                            concernBean.setLevel(getProjectLevel(valueString));//项目测量等级
-                        }
-
-                        boolean isAltitude = valueString.matches(regexIsAltitude);//*高*程* 必须转为unicode码，否则不会匹配成功
-                        if (isAltitude) {//如果匹配"高程",说明该列下的数据为高程值
-                            Iterator it = colDateMap.keySet().iterator();//获得存储好的日期所在列的集合
-                            while (it.hasNext()) {
-                                Integer dateCol = (Integer) it.next();
-                                if ((colString - dateCol) <= 1) {//如果该Cell的列在某个日期所在列的右侧的合理范围内，则认为是该日期下所测的高程值
-                                    altitudesMap.put(colString, colDateMap.get(dateCol));//将存放高程值的列号和对应的日期存储起来
-                                    break;
-                                }
-                            }
-
-                        }
-                        boolean isMileNo = valueString.matches(regexIsMilenum);//*里*程* 如果该列对应的是里程号,记录下来
-                        if (isMileNo && colMilenum == -1) {
-                            colMilenum = colString;
-                        }
-                        if (colString == colMilenum && valueString.matches(regexIsMilenumString)) {//该列是里程号并且该单元格的值跟里程号的字符串形式匹配
-
-                            String[] a = valueString.substring(1).split("\\+");
-                            thisRowMilenum = Double.parseDouble(a[0]) * 1000 + Double.parseDouble(a[1]);
-                            if (row.getCell(0).getCellTypeEnum() == CellType.STRING && thisRowDotnum.equals("")) {
-                                thisRowDotnum = row.getCell(0).getStringCellValue();
-                                Console.log("该行的点号是：" + thisRowDotnum);
-                            }
-                        }
-
-                        boolean isComment = valueString.matches(regexIsComment);
-                        if (isComment && colComment == -1) {
-                            colComment = colString;
-                        }
-
-                        break;
-                    case _NONE:
-                        break;
-                    case NUMERIC://数字
-                        double valueNumeric = cell.getNumericCellValue();//cell的值
-                        int colNumeric = cell.getColumnIndex();//cell所处的列
-
-                        if (colNumeric == colMilenum && valueNumeric >= 0 && valueNumeric <= 1000 * 10000) {//如果该列属于里程号列并且里程号的数字形式
-//                            isValidRow = true;
-                            thisRowMilenum = valueNumeric;
-                        }
-                    /*获取日期*/
-                        Date date = getDateFromCell(cell);
-                        if (date != null) {
-                            //该日期下的列号
-                            colDateMap.put(colNumeric, date);
-                            Console.log("该sheet中显示测量了：" + colDateMap.size() + "次");
-                        }
-                    /*获取高程值*/
-                        //如果该列代表高程值&&且该行为有效数据行
-                        if (altitudesMap.keySet().contains(colNumeric) && thisRowMilenum > 0) {
-                            if (row.getCell(0).getCellTypeEnum() == CellType.NUMERIC && thisRowDotnum.equals("")) {
-                                thisRowDotnum = (int) row.getCell(0).getNumericCellValue() + "";
-//                                Console.log("该行的点号是：" + thisRowDotnum);
-                            }
-                            if (colComment != -1 && thisRowCPnum.equals("")) {//该列是里程号并且该单元格的值跟里程号的字符串形式匹配
-                                thisRowCPnum = row.getCell(colComment).getStringCellValue();
-//                                Console.log("该行的CP点号是：" + thisRowCPnum);
-                            }
-                            date = colDateMap.get(colNumeric);
-                            AltitudeBean point = new AltitudeBean();
-                            point.setGmtMeasure(date);
-                            point.setMileNo(BigDecimal.valueOf(thisRowMilenum));
-                            point.setHeight(BigDecimal.valueOf(valueNumeric));
-                            point.setCpNo(thisRowCPnum);
-                            point.setMeasureNo(thisRowDotnum);
-                            point.setOnWhat(sheetName);
-                            if (!isInitPoint) {
-                                //如果该行之前的高程列还没有值，就就将其作为初始值（ps：后期还得改逻辑）
-                                point.setBasepoint(true);
-                                isInitPoint = true;
-                            }
-                            points.add(point);
-                        }
-                        break;
-                    case FORMULA://公式
-//                    keepDateDotData(sheet, cell);
-                        break;
-                    case BLANK:
-                        break;
-                    case BOOLEAN:
-                        break;
-                    case ERROR:
-                        break;
+                //日期
+                //期数
+                //高程
+                /*----------日期----------*/
+                int column = cell.getColumnIndex();
+                Date d = getDateFromCell(cell);
+                if (d != null) {
+                    dates.put(column, d);
                 }
+                /*----------日期----------*/
+
+                /*----------期数----------*/
+                int time = getTimesFromCell(cell);//返回表格中实际显示的期数，初测返回1
+                if (time != -1) {
+                    if (times.values().contains(time)) {
+                        times.put(column, ++time);
+                    } else {
+                        times.put(column, time);
+                    }
+                }
+                /*----------期数----------*/
+
+                /*----------高程----------*/
+                boolean isHeigtColumn = isHeightCoumn(cell);
+                if (isHeigtColumn) {
+                    Iterator it = dates.keySet().iterator();
+                    while (it.hasNext()) {
+                        int leftColumn = (int) it.next();
+                        while (it.hasNext()) {
+                            int rightColumn = (int) it.next();
+                            if (column >= leftColumn && column < rightColumn) {
+                                heights.put(column, dates.get(leftColumn));
+                            }
+                        }
+                    }
+                }
+                /*----------高程----------*/
+
+                /*----------测点----------*/
+                boolean isMeasurePointColumn = isMeasurePointColumn(cell);
+                if (isMeasurePointColumn) {
+                    measurePointColumn = column;
+                }
+                /*----------测点----------*/
+
+                /*----------里程----------*/
+                boolean isMileNoColumn = isMileNoColumn(cell);
+                if (isMileNoColumn) {
+                    mileNoColumn = column;
+                }
+                /*----------里程----------*/
+
+                /*----------CP点----------*/
+                boolean isCpNoColumn = isCpNoColumn(cell);
+                if (isCpNoColumn) {
+                    cpNoColumn = column;
+                }
+                /*----------CP点----------*/
+
+                /*----------以里程号作为判断有效行的依据----------*/
+
+                if (mileNoColumn == column && mileNo == null) {
+                    mileNo = getMileNo(cell);
+                }
+                if (mileNo != null && (measureNo == null || cpNo == null)) {
+                    measureNo = getMeasureNoFromCell(row.getCell(measurePointColumn));
+                    cpNo = getCPNoFromCell(row.getCell(cpNoColumn));
+                }
+
+                if (mileNo != null && heights.keySet().contains(column)) {
+                    double val = cell.getCellTypeEnum() == CellType.NUMERIC ? cell.getNumericCellValue() : -1;
+                    if (val > 0) {
+                        BigDecimal height = BigDecimal.valueOf(val);
+                        AltitudeBean point = new AltitudeBean();
+                        point.setMeasureNo(measureNo);
+                        point.setMileNo(mileNo);
+                        point.setHeight(height);
+                        point.setGmtMeasure(heights.get(column));
+                        point.setOnWhat(sheetName);
+                        point.setCpNo(cpNo);
+                        if (!isInitPoint) {
+                            //如果该行之前的高程列还没有值，就就将其作为初始值（ps：后期还得改逻辑）
+                            point.setBasepoint(true);
+                            isInitPoint = true;
+                        }
+                        points.add(point);
+                    }
+                }
+
             }
         }
 
+    }
+
+    private static String getCPNoFromCell(XSSFCell cell) {
+        if (cell.getCellTypeEnum() == CellType.STRING) {
+            return cell.getStringCellValue();
+        } else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+            return cell.getNumericCellValue() + "";
+        }
+        return "";
+    }
+
+    private static String getMeasureNoFromCell(XSSFCell cell) {
+        if (cell.getCellTypeEnum() == CellType.STRING) {
+            return cell.getStringCellValue();
+        } else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+            return cell.getNumericCellValue() + "";
+        }
+        return "";
+    }
+
+    private static BigDecimal getMileNo(Cell cell) {
+        if (cell.getCellTypeEnum() == CellType.STRING) {
+            String regex = "^[k|K]\\d{1,4}\\+\\d{1,3}";//*里程号的字符串形式K646+921、K0181+157.8
+            String val = cell.getStringCellValue();
+            if (val.matches(regex)) {
+                String[] a = val.replaceAll("[k|K]", "").split("\\+");
+                Double res = Double.parseDouble(a[0]) * 1000 + Double.parseDouble(a[1]);
+                return BigDecimal.valueOf(res);
+            }
+            return null;
+        } else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+            double val = cell.getNumericCellValue();
+            if (val >= 0 && val <= 9999999) {
+                return BigDecimal.valueOf(val);
+            }
+            return null;
+        }
+        return null;
+    }
+
+    private static boolean isCpNoColumn(Cell cell) {
+        if (cell.getCellTypeEnum() != CellType.STRING) {
+            return false;
+        }
+        String val = cell.getStringCellValue();
+        if (val.matches(".*" + Convert.strToUnicode("对应CP") + ".*" + Convert.strToUnicode("点号") + ".*")) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isMileNoColumn(Cell cell) {
+        if (cell.getCellTypeEnum() != CellType.STRING) {
+            return false;
+        }
+        String val = cell.getStringCellValue();
+        if (val.matches(".*" + Convert.strToUnicode("里") + ".*" + Convert.strToUnicode("程") + ".*")) {
+            return true;
+        }
+        return false;
+    }
+
+
+    private static boolean isMeasurePointColumn(Cell cell) {
+        if (cell.getCellTypeEnum() != CellType.STRING) {
+            return false;
+        }
+        String val = cell.getStringCellValue();
+        if (val.matches(".*" + Convert.strToUnicode("测") + ".*" + Convert.strToUnicode("点") + ".*")) {
+            return true;
+        }
+        return false;
+
+    }
+
+    private static boolean isHeightCoumn(Cell cell) {
+
+        if (cell.getCellTypeEnum() != CellType.STRING) {
+            return false;
+        }
+
+        String val = cell.getStringCellValue();
+        if (val.matches(".*" + Convert.strToUnicode("高") + ".*" + Convert.strToUnicode("程") + ".*")) {
+            return true;
+        }
+        return false;
+    }
+
+    private static int getTimesFromCell(Cell cell) {
+
+        if (cell.getCellTypeEnum() != CellType.STRING) {
+            return -1;
+        }
+
+        String val = cell.getStringCellValue();
+        if (val.matches(".*" + Convert.strToUnicode("初") + ".*" + Convert.strToUnicode("测") + ".*")) {
+            return 1;
+        }
+        if (val.matches(".*" + Convert.strToUnicode("第") + ".*\\d+" + Convert.strToUnicode("次"))) {
+
+            Pattern p = Pattern.compile("\\d+");
+            Matcher m = p.matcher(val);
+            if (m.find()) {
+                return Integer.parseInt(val.substring(m.start(), m.end()));
+            }
+        }
+
+        return -1;
     }
 
     /**
@@ -348,6 +508,9 @@ public class ExcelManager {
      * 如果是，则返回正确的日期格式
      */
     private static Date getDateFromCell(Cell cell) {
+        if (cell.getCellTypeEnum() != CellType.NUMERIC) {
+            return null;
+        }
         short format = cell.getCellStyle().getDataFormat();
         //只适用于Excel自带的日期格式（前两种1.2012/1/13  2.2012年1月13日）
         if (DateUtil.isCellDateFormatted(cell) ||

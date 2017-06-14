@@ -5,7 +5,10 @@ import org.nutz.dao.entity.annotation.ColType;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Comment;
 import org.nutz.dao.entity.annotation.Id;
+import org.nutz.dao.entity.annotation.Index;
+import org.nutz.dao.entity.annotation.Name;
 import org.nutz.dao.entity.annotation.Table;
+import org.nutz.dao.entity.annotation.TableIndexes;
 
 import java.util.Date;
 
@@ -15,10 +18,13 @@ import java.util.Date;
  */
 
 @Table("t_concern")
+@TableIndexes(@Index(name = "uk_pid_start_end", fields = {"pkPid", "start", "end"}, unique = true))
 public class ConcernBean {
     @Id
     @ColDefine(unsigned = true, width = 2)
     private int id;
+    @Name
+    private String name;
 
     @Column(hump = true)
     @ColDefine(type = ColType.DATETIME)
@@ -150,6 +156,14 @@ public class ConcernBean {
         this.projectType = projectType;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
 
@@ -158,6 +172,7 @@ public class ConcernBean {
                 .append("id:" + id)
 //                .append(",gmtCreate:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtCreate.getTime()))
 //                .append(",gmtModified:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtModified.getTime()))
+                .append(",name:" + name)
                 .append(",projectName:" + projectName)
                 .append(",pkPid:" + pkPid)
                 .append(",projectType:" + projectType)
