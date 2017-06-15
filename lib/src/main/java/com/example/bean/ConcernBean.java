@@ -23,6 +23,7 @@ public class ConcernBean {
     @Id
     @ColDefine(unsigned = true, width = 2)
     private int id;
+
     @Name
     private String name;
 

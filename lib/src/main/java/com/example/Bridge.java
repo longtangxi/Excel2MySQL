@@ -2,14 +2,13 @@ package com.example;
 
 import com.example.bean.AltitudeBean;
 import com.example.bean.ConcernBean;
+import com.example.bean.ProjectBean;
 import com.xiaoleilu.hutool.lang.Console;
 
-import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by ty on 2017/6/8.
@@ -23,6 +22,7 @@ public class Bridge {
         Dao dao = DaoUtil.getDao();
         dao.create(ConcernBean.class, false);
         dao.create(AltitudeBean.class, false);
+        dao.create(ProjectBean.class, false);
 
     }
 
@@ -31,138 +31,31 @@ public class Bridge {
     public static void storeExcel2DB(ConcernBean concernBean, LinkedList<AltitudeBean> points) {
         Console.log(concernBean.toString());
         Dao dao = DaoUtil.getDao();
-        dao.create(ConcernBean.class, false);
-        dao.insert(concernBean);
-        List<ConcernBean> concernBeans = dao.query(ConcernBean.class
-                , Cnd.where("start", "=", concernBean.getStart())
-                        .and("end", "=", concernBean.getEnd()));//获取该重点段的主键ID
-        int concernID = -1;
-        if (concernBeans.size() > 0) {
-            concernID = concernBeans.get(0).getId();
-        }
 
+        ConcernBean c = dao.fetch(ConcernBean.class, concernBean.getName());
+        ProjectBean p = dao.fetch(ProjectBean.class, concernBean.getProjectName());
+        if (c == null) {
+            dao.insert(concernBean);
+            Console.log("没有查询到指定的重点段，它的ID:" + c.toString());
+        } else {
+            Console.log("查询到指定的重点段" + c.toString());
+        }
+        if (p == null) {
+            p = new ProjectBean();
+            p.setName(concernBean.getProjectName());
+            p.setGmtCreate(new Date());
+            p.setGmtModified(new Date());
+            dao.insert(p);
+        }
         for (AltitudeBean bean : points) {
-            bean.setPkConcernid(concernID);
+            bean.setPkConcernid(c.getId());
+            bean.setPkPid(p.getId());
             bean.setGmtCreate(new Date());
             bean.setGmtModified(new Date());
         }
         dao.insert(points);
 
-//        DBManager db = DBManager.getInstance();
-//
-//        try {
-//            DaoUp.me().init(".\\lib\\assets\\db.properties");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        Dao dao = DaoUp.me().dao();
-//        setBean(sheetBean, db);//完善Bean类
-//
-//        StringBuilder insertManySQL = new StringBuilder()
-//                .append("insert into " + Altitude.tableName)
-//                .append("(")
-//                .append("`" + Altitude.MILENUM + "`")
-//                .append(",`" + Altitude.MEASURE_TIME + "`")
-//                .append(",`" + Altitude.ALTITUDE + "`")
-//                .append(",`" + Altitude.GMT_CREATE + "`")
-//                .append(",`" + Altitude.GMT_MODIFIED + "`")
-//                .append(",`" + Altitude.LEVEL + "`")
-//                .append(",`" + Altitude.ADDR_WORK + "`")
-//                .append(",`" + Altitude.PROJECT_ID + "`")
-//                .append(",`" + Altitude.ADDR_DOT + "`")
-//                .append(",`" + Altitude.IS_INIT + "`")
-//                .append(",`" + Altitude.FOCUS_ID + "`")
-//                .append(",`" + Altitude.CPNUM + "`")
-//                .append(",`" + Altitude.MEASURENUM + "`")
-//                .append(") ")
-//                .append("values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
-//        PreparedStatement pSmt = db.getPreparedStatement(insertManySQL.toString());
-//        if (pSmt == null) {
-//            try {
-//                throw new Exception("PreparedStatement为空");
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        for (SheetBean.DotBean dotBean : sheetBean.getList()) {
-//            try {
-//                pSmt.setBigDecimal(1, dotBean.getMilenum());
-//                pSmt.setTimestamp(2, new Timestamp(dotBean.getDate().getTime()));
-//                pSmt.setBigDecimal(3, dotBean.getAltitude());
-//                Timestamp current = new Timestamp(new Date().getTime());
-//                pSmt.setTimestamp(4, current);
-//                pSmt.setTimestamp(5, current);
-//                pSmt.setInt(6, sheetBean.getLevel());
-//                pSmt.setString(7, sheetBean.getAddrWork());
-//                pSmt.setInt(8, sheetBean.getpID());
-//                pSmt.setString(9, sheetBean.getSheetName());
-//                pSmt.setInt(10, dotBean.isInitPoint() ? 1 : 0);
-//                pSmt.setInt(11, sheetBean.getFoucusID());
-//                pSmt.setString(12, dotBean.getCp_num());
-//                pSmt.setString(13, dotBean.getMeasure_num());
-//                pSmt.executeUpdate();
-//            } catch (SQLException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
     }
 
-    /**
-     * 根据表格内容获取数据库表示
-     *
-     * @param db
-     */
-    private static void setBean(DBManager db) {
-    /*先完善bean的信息*/
-//        StringBuilder sql = new StringBuilder()
-//                .append("select ")
-//                .append(Project.ID)
-//                .append("," + Project.NAME)
-//                .append(" from ")
-//                .append(Project.tableName);//查询工程ID,名称
-//        PreparedStatement pstmt = db.getPreparedStatement(sql.toString() //传入控制结果集可滚动、可更新的参数
-//                , ResultSet.TYPE_SCROLL_INSENSITIVE
-//                , ResultSet.CONCUR_UPDATABLE);
-//        try {
-//            ResultSet rs = pstmt.executeQuery();
-//            rs.last();
-//            int rowCount = rs.getRow();
-//            for (int i = 1; i <= rowCount; i++) {
-//                rs.absolute(i);
-//                if (bean.getProjectName().matches(".*" + rs.getString(2) + ".*")) {//如果表格中的工程名称匹配数据库中的名称
-//                    bean.setpID(rs.getInt(1));//设置Bean中的ID
-//                    break;
-//                }
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        int direction = bean.getProjectType().matches(".*" + Convert.strToUnicode("沉降") + ".*") ? 1 : 0;
-//        sql = new StringBuilder()
-//                .append("select ")
-//                .append(Focus.ID)
-//                .append(" from ")
-//                .append(Focus.tableName)
-//                .append(" where ")
-//                .append(Focus.NAME + " like 'K646+%'")
-//                .append(" and " + Focus.CONTENT + "=" + direction);
-////        Console.log(sql.toString());
-//        pstmt = db.getPreparedStatement(sql.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE
-//                , ResultSet.CONCUR_UPDATABLE);
-//        try {
-//            ResultSet rs = pstmt.executeQuery();
-//            rs.last();
-//            int rowCount = rs.getRow();
-//            for (int i = 1; i <= rowCount; i++) {
-//                rs.absolute(i);
-//                bean.setFoucusID(rs.getInt(1));
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-    }
 
 }

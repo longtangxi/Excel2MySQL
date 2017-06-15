@@ -136,6 +136,15 @@ public class ExcelManager {
                                 concernBean.setEnd(endLong);
                             }
                         }
+
+                        regex = ".*[" + Convert.strToUnicode("标") + "|" + Convert.strToUnicode("线") + "]";
+                        p = Pattern.compile(regex);
+                        m = p.matcher(valStr);
+                        while (m.find())
+                        {
+                            String projectName = valStr.substring(m.start(),m.end());
+                            concernBean.setProjectName(projectName);
+                        }
                     }
                 }
 //                        if (valStr.matches(".*" + Convert.strToUnicode("总第") + ".*" + Convert.strToUnicode("期"))) {

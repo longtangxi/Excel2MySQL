@@ -75,7 +75,7 @@ public class AltitudeBean {
 
     @Column(hump = true)
     @Comment(value = "外键,工程ID")
-    private String pkPid;
+    private int pkPid;
 
     @Column(hump = true)
     @ColDefine(unsigned = true, width = 2)
@@ -206,11 +206,11 @@ public class AltitudeBean {
         this.cpNo = cpNo;
     }
 
-    public String getPkPid() {
+    public int getPkPid() {
         return pkPid;
     }
 
-    public void setPkPid(String pkPid) {
+    public void setPkPid(int pkPid) {
         this.pkPid = pkPid;
     }
 
