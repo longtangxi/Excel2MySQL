@@ -6,7 +6,6 @@ import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Comment;
 import org.nutz.dao.entity.annotation.Id;
 import org.nutz.dao.entity.annotation.Index;
-import org.nutz.dao.entity.annotation.Name;
 import org.nutz.dao.entity.annotation.Table;
 import org.nutz.dao.entity.annotation.TableIndexes;
 
@@ -18,13 +17,13 @@ import java.util.Date;
  */
 
 @Table("t_concern")
-@TableIndexes(@Index(name = "uk_pid_start_end", fields = {"pkPid", "start", "end"}, unique = true))
+@TableIndexes(@Index(name = "uk_pid_name_direction", fields = {"pkPid", "name","direction"}, unique = true))
 public class ConcernBean {
     @Id
-    @ColDefine(unsigned = true, width = 2)
+    @ColDefine(unsigned = true, width = 4)
     private int id;
 
-    @Name
+    @Column(hump = true)
     private String name;
 
     @Column(hump = true)

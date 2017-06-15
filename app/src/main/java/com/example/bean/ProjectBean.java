@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.CellValue;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 import org.nutz.dao.entity.annotation.ColDefine;
 import org.nutz.dao.entity.annotation.ColType;
@@ -65,6 +66,20 @@ public class ProjectBean {
             }
             Console.log(companyName + ":" + projectName);
 
+            Dao dao = DaoUtil.getDao();
+            dao.create(ProjectBean.class, false);
+            List<ProjectBean> projects = dao.query(ProjectBean.class, Cnd.where("name", "=", projectName));
+            ProjectBean project = new ProjectBean();
+            if (projects != null && projects.size() > 0) {
+                project.setId(projects.get(0).getId());
+            } else {
+                project.setName(projectName);
+                project.setCompany(companyName);
+                project.setGmtCreate(new Date());
+                project.setGmtModified(new Date());
+                dao.insert(project);
+            }
+
             filename = file.getAbsolutePath() + "\\" + filename;
             try {
                 FileInputStream fis = new FileInputStream(new File(filename));
@@ -72,9 +87,8 @@ public class ProjectBean {
                     HSSFWorkbook workbook = new HSSFWorkbook(fis);
                     evaluator = workbook.getCreationHelper().createFormulaEvaluator();
                     List<ConcernBean> list = new ArrayList<>();
-                    formatData(workbook, list);
-                    Dao dao = DaoUtil.getDao();
-                    dao.create(ConcernBean.class,false);
+                    formatData(workbook, list, project.getId());
+                    dao.create(ConcernBean.class, false);
                     dao.insert(list);
                 }
             } catch (FileNotFoundException e) {
@@ -85,7 +99,7 @@ public class ProjectBean {
         }
     }
 
-    private static void formatData(HSSFWorkbook workbook, List<ConcernBean> list) {
+    private static void formatData(HSSFWorkbook workbook, List<ConcernBean> list, int pid) {
         Iterator itSht = workbook.iterator();
         while (itSht.hasNext()) {
             Sheet sheet = (Sheet) itSht.next();
@@ -120,23 +134,26 @@ public class ProjectBean {
 
                         ConcernBean bean = new ConcernBean();
                         bean.setProjectName(parseAny2String(row.getCell(1)));
-                        long[] mileArray = Utils.getMileArray(parseAny2String(row.getCell(taskColumn)));
+                        String valtask = parseAny2String(row.getCell(taskColumn));
+                        long[] mileArray = Utils.getMileArray(valtask);
                         if (mileArray != null) {
                             bean.setStart(mileArray[0]);
                             bean.setEnd(mileArray[1]);
                         } else if (mileArray == null) {
-                            bean.setAddress(parseAny2String(row.getCell(taskColumn)));
+                            bean.setAddress(valtask);
                         }
-                        bean.setName(parseAny2String(row.getCell(taskColumn)));
+                        bean.setName(valtask.trim());
                         bean.setDirection(parseAny2String(row.getCell(directionColumn)));
 
                         int period = getPeriodFromCell(parseAny2String(row.getCell(periodColumn)));
-                        if (period == -1) {
+                        if (period == 0) {
                             period = getPeriodFromCell(parseAny2String(row.getCell(periodColumn - 1)));
                         }
                         bean.setPeriod(period);
+                        bean.setPkPid(pid);
                         bean.setGmtCreate(new Date());
                         bean.setGmtModified(new Date());
+                        if (bean.getPeriod() == 0) continue;
                         list.add(bean);
                         Console.log(bean);
                     }
@@ -204,7 +221,7 @@ public class ProjectBean {
         } else if (str.equals("101")) {
             return 101;
         }
-        return -1;
+        return 0;
     }
 
     @Id
@@ -213,6 +230,10 @@ public class ProjectBean {
 
     @Name
     private String name;
+
+    @Column(hump = true)
+    @Comment(value = "施测单位")
+    private String company;//
 
     @Column(hump = true)
     @Comment(value = "备注")
@@ -227,6 +248,14 @@ public class ProjectBean {
     @ColDefine(type = ColType.DATETIME)
     @Comment(value = "更改日期")
     private Date gmtModified;
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
 
     public int getId() {
         return id;
