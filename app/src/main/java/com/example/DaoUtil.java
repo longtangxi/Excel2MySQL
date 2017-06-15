@@ -17,7 +17,7 @@ public class DaoUtil {
             return dao;
         }
         try {
-            DaoUp.me().init(".\\lib\\assets\\db.properties");
+            DaoUp.me().init(".\\app\\assets\\db.properties");
         } catch (IOException e) {
             e.printStackTrace();
         }
