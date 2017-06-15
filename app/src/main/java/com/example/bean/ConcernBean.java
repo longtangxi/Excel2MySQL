@@ -63,11 +63,36 @@ public class ConcernBean {
     private int level;
 
     @Column(hump = true)
+    @ColDefine(unsigned = true, width = 1)
+    @Comment(value = "监测周期")
+    private int period;
+
+    @Column(hump = true)
     @Comment(value = "施工地点")
     private String address;
 
+    @Column(hump = true)
+    @Comment(value = "方向")
+    private String direction;
+
     private String projectName;
     private String projectType;
+
+    public int getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(int period) {
+        this.period = period;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
 
     public String getAddress() {
         return address;
@@ -174,6 +199,8 @@ public class ConcernBean {
 //                .append(",gmtCreate:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtCreate.getTime()))
 //                .append(",gmtModified:" + new SimpleDateFormat("yyyy-MM-dd").format(gmtModified.getTime()))
                 .append(",name:" + name)
+                .append(",direction:" + direction)
+                .append(",period:" + period)
                 .append(",projectName:" + projectName)
                 .append(",pkPid:" + pkPid)
                 .append(",projectType:" + projectType)

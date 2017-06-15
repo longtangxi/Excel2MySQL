@@ -40,7 +40,7 @@ public class ExcelManager {
     public static void main(String[] args) {
 //        System.out.println(System.getProperty("user.dir"));//user.dir指定了当前的路径
 //        System.out.println(System.getProperty("file.encoding"));
-        String filename = System.getProperty("user.dir") + "\\lib\\src\\main\\java\\com\\example\\a.xlsx";
+        String filename = System.getProperty("user.dir") + "\\app\\src\\main\\java\\com\\example\\a.xlsx";
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(new File(filename));
