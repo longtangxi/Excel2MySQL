@@ -10,6 +10,8 @@ dependencies {
     compile files('libs/poi-ooxml-schemas-3.16.jar')
     compile files('libs/xmlbeans-2.6.0.jar')
 }
-
+//tasks.withType(JavaCompile) {
+//    options.encoding = "UTF-8"
+//}
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
