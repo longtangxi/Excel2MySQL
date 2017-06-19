@@ -113,7 +113,9 @@ public class Home extends SingleFrameApplication {
         GridBagLayout gb = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
 
-        JPanel leftJPanel = new JPanel(gb);
+        JPanel leftJPanel = new JPanel();
+        leftJPanel.setLayout(new BoxLayout(leftJPanel,BoxLayout.Y_AXIS));
+        leftJPanel.setLayout(new GridLayout(4,1));
         leftJPanel.setBackground(Color.RED);
         gbc.gridx = gbc.gridy = 0;//设置索引
         gbc.anchor = NORTH;
@@ -126,7 +128,7 @@ public class Home extends SingleFrameApplication {
         JLabel title = new JLabel("功能表标题");//标题设置
         title.setOpaque(false);
         title.setHorizontalAlignment(JLabel.LEADING);
-        titlePanel.add(title, BorderLayout.CENTER);//添加至标题JPanel
+        titlePanel.add(title, BorderLayout.NORTH);//添加至标题JPanel
 
         leftJPanel.add(titlePanel);//添加至左侧功能列表JPanel
 
@@ -134,6 +136,7 @@ public class Home extends SingleFrameApplication {
 
         for (ToggleButton btn : buttons) {
             gbc.gridy++;
+
             Console.log(gbc.gridy);
             gb.setConstraints(btn,gbc);
             leftJPanel.add(btn);
