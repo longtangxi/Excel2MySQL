@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -183,7 +182,7 @@ public class Home extends SingleFrameApplication {
             BtnBean bean = new BtnBean();
             bean.setName(names[i]);
             bean.setDesc(descs[i]);
-            bean.setIcon(new ImageIcon(Home.class.getResource("resources/images/earth_night.gif")));
+//            bean.setIcon(new ImageIcon(Home.class.getResource("resources/images/earth_night.gif")));
             FunctionButton button = new FunctionButton(bean);
 
             buttons.add(button);
