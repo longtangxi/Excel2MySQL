@@ -1,7 +1,5 @@
 package ui;
 
-import com.xiaoleilu.hutool.lang.Console;
-
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.jdesktop.application.SingleFrameApplication;
 import org.jdesktop.application.View;
@@ -9,9 +7,8 @@ import org.jdesktop.application.View;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.TextField;
@@ -26,25 +23,32 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 import ui.model.FuncBean;
 import ui.my.GradientPanel;
 import ui.my.ToggleButton;
 import ui.my.Utils;
+import ui.resources.Colors;
 
 import static java.awt.BorderLayout.CENTER;
-import static java.awt.GridBagConstraints.NORTH;
+import static java.awt.BorderLayout.NORTH;
 
 /**
  * Created by ty on 2017/6/16.
  */
 
 public class Home extends SingleFrameApplication {
+
+    private Color mColorGradientLeft;//左侧渐变起点色
+    private Color mColorGradientRight;//右侧渐变终点色
+    private Color mColorTitleForground;//文字前景色
 
     @Override
     protected void initialize(String[] args) {
@@ -110,41 +114,43 @@ public class Home extends SingleFrameApplication {
      */
     private JPanel getLeftPanel() {
         //创建左侧导航栏布局
-        GridBagLayout gb = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
 
         JPanel leftJPanel = new JPanel();
-        leftJPanel.setLayout(new BoxLayout(leftJPanel,BoxLayout.Y_AXIS));
-        leftJPanel.setLayout(new GridLayout(4,1));
-        leftJPanel.setBackground(Color.RED);
-        gbc.gridx = gbc.gridy = 0;//设置索引
-        gbc.anchor = NORTH;
-//        gbc.gridwidth = 2;//横向跨越2格
-//        gbc.gridheight = 1;//纵向跨越1格
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        GradientPanel titlePanel = getLeftTitlePanel();//左侧功能列表标题JPanel
-        gb.setConstraints(titlePanel, gbc);
-        JLabel title = new JLabel("功能表标题");//标题设置
-        title.setOpaque(false);
-        title.setHorizontalAlignment(JLabel.LEADING);
-        titlePanel.add(title, BorderLayout.NORTH);//添加至标题JPanel
+        leftJPanel.setLayout(new BorderLayout());
+        leftJPanel.setBackground(Color.GREEN);
+        leftJPanel.add(getLeftTitlePanel(), NORTH);///左侧功能列表标题JPanel添加至左侧功能列表JPanel
+        leftJPanel.add(getLeftButtonPanel(), CENTER);
+        leftJPanel.setBorder(new MatteBorder(0, 0, 0, 1,
+                Colors.CONTROL_SHADOW));
 
-        leftJPanel.add(titlePanel);//添加至左侧功能列表JPanel
-
-        List<ToggleButton> buttons = getFuncButtons(leftJPanel);
-
-        for (ToggleButton btn : buttons) {
-            gbc.gridy++;
-
-            Console.log(gbc.gridy);
-            gb.setConstraints(btn,gbc);
-            leftJPanel.add(btn);
-        }
         return leftJPanel;
     }
 
-    private List<ToggleButton> getFuncButtons(JPanel leftJPanel) {
+    /**
+     * 创建左侧功能选项栏
+     *
+     * @return
+     */
+    private JScrollPane getLeftButtonPanel() {
+
+        JPanel panel = new JPanel();
+        panel.setBackground(Utils.deriveColorHSB(Colors.PANEL_BACKGROUND, 0, 0, -.06f));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new CompoundBorder(new ChiselBorder(),new EmptyBorder(12,8,12,8)));
+        List<ToggleButton> buttons = getFuncButtons();
+
+        for (ToggleButton btn : buttons) {
+            panel.add(btn);
+        }
+        JLabel jj = new JLabel("gg");
+        jj.setBorder(new EmptyBorder(0, 0, 0, 0));
+        jj.setBackground(Color.GREEN);
+        panel.add(jj);
+        return new JScrollPane(panel);
+    }
+
+
+    private List<ToggleButton> getFuncButtons() {
         List<ToggleButton> buttons = new ArrayList<>();
         String[] names = {"主页", "图表", "数据库"};
         String[] descs = {"主要功能界面", "生成各种统计图", "数据库的导入导出"};
@@ -173,33 +179,50 @@ public class Home extends SingleFrameApplication {
         return buttons;
     }
 
+    /**
+     * 创建左侧顶部功能菜单的标题栏
+     *
+     * @return
+     */
     private GradientPanel getLeftTitlePanel() {
         // Calculate gradient colors for title panels
+        //activeCaption[r=153,g=180,b=209]
         Color titleColor = UIManager.getColor(usingNimbus() ? "nimbusBase" : "activeCaption");
 
         // Some LAFs (e.g. GTK) don't contain "activeCaption"
         if (titleColor == null) {
-            titleColor = UIManager.getColor("control");
+            titleColor = Colors.CONTROL;
         }
+        //hue（色相）、saturation（饱和度）、brightness（明度）。
+        //{0.5863095,0.26794258,0.81960785}
         float hsb[] = Color.RGBtoHSB(
                 titleColor.getRed(), titleColor.getGreen(), titleColor.getBlue(), null);
-        String COLOR_1 = "color1";
-        String COLOR_2 = "color1";
-        String COLOR_FOREGROUND = "color_forground";
-        UIManager.put(COLOR_1,
-                Color.getHSBColor(hsb[0] - .013f, .15f, .85f));
-        UIManager.put(COLOR_2,
-                Color.getHSBColor(hsb[0] - .005f, .24f, .80f));
-        UIManager.put(COLOR_FOREGROUND,
-                Color.getHSBColor(hsb[0], .54f, .40f));
 
-        GradientPanel titlePanel = new GradientPanel(
-                UIManager.getColor(COLOR_1),
-                UIManager.getColor(COLOR_2));
-        titlePanel.setLayout(new BorderLayout());
-        titlePanel.setBorder(new CompoundBorder(
-                new ChiselBorder(), new EmptyBorder(6, 8, 6, 10)));
-        return titlePanel;
+        mColorGradientLeft = Color.getHSBColor(hsb[0] - .013f, .15f, .85f);
+        mColorGradientRight = Color.getHSBColor(hsb[0] - .005f, .24f, .80f);
+        mColorTitleForground = Color.getHSBColor(hsb[0], .54f, .40f);
+        //java.awt.Color[r=184,g=202,b=217]
+        //java.awt.Color[r=155,g=180,b=204]
+        GradientPanel panel = new GradientPanel(
+                mColorGradientLeft,
+                mColorGradientRight);
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new CompoundBorder(
+                new ChiselBorder(), new EmptyBorder(6, 8, 6, 8)));
+        /*---------titlePanel设置完毕----*/
+
+        JLabel title = new JLabel("功能表标题");//标题设置
+        title.setOpaque(false);//透明效果
+        title.setHorizontalAlignment(JLabel.LEADING);
+        title.setForeground(mColorTitleForground);//设置字体颜色
+        title.setBackground(Color.GRAY);
+        Font labelFont = UIManager.getFont("Label.font");//设置字体大小
+        labelFont = labelFont.deriveFont(Font.BOLD, labelFont.getSize() + 4f);
+        title.setFont(labelFont);
+
+        panel.add(title, CENTER);//添加至标题JPanel
+
+        return panel;
     }
 
     public static boolean usingNimbus() {
@@ -229,10 +252,10 @@ public class Home extends SingleFrameApplication {
 
         public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
             Color color = c.getBackground();
-            // render highlight at top
+            // render highlight at top顶部高亮
             g.setColor(Utils.deriveColorHSB(color, 0, 0, .2f));
             g.drawLine(x, y, x + width, y);
-            // render shadow on bottom
+            // render shadow on bottom//底部阴影
             g.setColor(Utils.deriveColorHSB(color, 0, 0, -.2f));
             g.drawLine(x, y + height - 1, x + width, y + height - 1);
         }

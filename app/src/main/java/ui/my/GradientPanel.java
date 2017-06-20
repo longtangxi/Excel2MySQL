@@ -39,6 +39,7 @@ import java.awt.Image;
 import javax.swing.JPanel;
 
 /**
+ * 从左至右开始渐变
  * Simple panel subclass which renders a 2-color vertical linear gradient
  * as the background.
  * @author Aim

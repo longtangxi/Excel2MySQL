@@ -33,7 +33,7 @@ setText(funcName);
         setHorizontalAlignment(JToggleButton.LEADING);
         setOpaque(false);
         setBorder(new CompoundBorder(
-                new DefaultBorder(), new EmptyBorder(0, 18, 0, 0)));
+                new DefaultBorder(), new EmptyBorder(0, 0, 0, 0)));
         setFocusPainted(false);
         setContentAreaFilled(false);
         setToolTipText(mFunctionBean.getDesc());
