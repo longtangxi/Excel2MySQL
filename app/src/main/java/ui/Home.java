@@ -182,6 +182,7 @@ public class Home extends SingleFrameApplication {
             BtnBean bean = new BtnBean();
             bean.setName(names[i]);
             bean.setDesc(descs[i]);
+//            
 //            bean.setIcon(new ImageIcon(Home.class.getResource("resources/images/earth_night.gif")));
             FunctionButton button = new FunctionButton(bean);
 
