@@ -31,6 +31,8 @@
 
 package ui.my;
 
+import com.xiaoleilu.hutool.lang.Console;
+
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.interpolation.PropertySetter;
 
@@ -146,6 +148,7 @@ public class CollapsePanel extends JPanel {
     }
 
     public void setExpanded(boolean expanded) {
+        Console.log("oldExpanded:"+this.expanded+"  expanded"+expanded);
         boolean oldExpanded = this.expanded;
         if (oldExpanded != expanded) {
             if (expandCheckBox != null) {

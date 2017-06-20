@@ -39,7 +39,7 @@ import javax.swing.Icon;
  *
  * @author Amy Fowler
  */
-public class FuncBean {
+public class BtnBean {
 
     public enum State {UNINITIALIZED, INITIALIZING, INITIALIZED, RUNNING, STOPPED, FAILED}
 

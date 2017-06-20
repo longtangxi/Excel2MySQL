@@ -33,10 +33,10 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import ui.model.FuncBean;
+import ui.model.BtnBean;
 import ui.my.CollapsePanel;
+import ui.my.FunctionButton;
 import ui.my.GradientPanel;
-import ui.my.ToggleButton;
 import ui.my.Utils;
 import ui.resources.Colors;
 
@@ -160,31 +160,31 @@ public class Home extends SingleFrameApplication {
         mainLayout.addLayoutComponent(collapsePanel,mainConstraints);
         panel.add(collapsePanel);
         mainConstraints.gridy++;
-        List<ToggleButton> buttons = getFuncButtons();
-        for (ToggleButton btn : buttons) {
+        List<FunctionButton> buttons = getFuncButtons();
+        for (FunctionButton btn : buttons) {
             categoryLayout.addLayoutComponent(btn, categoryConstraints);
             categoryPanel.add(btn);
             categoryConstraints.gridy++;
         }
         panel.add(collapsePanel);
-        JPanel trailer = new JPanel();
+        JPanel blankPanel = new JPanel();
         mainConstraints.weighty = 1.0;//占据多余空间
-        mainLayout.addLayoutComponent(trailer, mainConstraints);
-        panel.add(trailer);
+        mainLayout.addLayoutComponent(blankPanel, mainConstraints);
+        panel.add(blankPanel);
         return new JScrollPane(panel);
     }
 
 
-    private List<ToggleButton> getFuncButtons() {
-        List<ToggleButton> buttons = new ArrayList<>();
+    private List<FunctionButton> getFuncButtons() {
+        List<FunctionButton> buttons = new ArrayList<>();
         String[] names = {"主页", "图表", "数据库"};
         String[] descs = {"主要功能界面", "生成各种统计图", "数据库的导入导出"};
         for (int i = 0; i < names.length; i++) {
-            FuncBean bean = new FuncBean();
+            BtnBean bean = new BtnBean();
             bean.setName(names[i]);
             bean.setDesc(descs[i]);
             bean.setIcon(new ImageIcon(Home.class.getResource("resources/images/earth_night.gif")));
-            ToggleButton button = new ToggleButton(bean);
+            FunctionButton button = new FunctionButton(bean);
 
             buttons.add(button);
         }

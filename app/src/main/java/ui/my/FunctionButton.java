@@ -13,30 +13,30 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
-import ui.model.FuncBean;
+import ui.model.BtnBean;
 
 /**
  * Created by ty on 2017/6/19.
  */
 
-public class ToggleButton extends JToggleButton {
-    private FuncBean mFunctionBean;
+public class FunctionButton extends JToggleButton {
+    private BtnBean mBtnBean;
 
-    public ToggleButton(FuncBean bean) {
+    public FunctionButton(BtnBean bean) {
         super();
-        this.mFunctionBean = bean;
-        String funcName = mFunctionBean.getName();
-setText(funcName);
-        setIcon(mFunctionBean.getIcon());
+        this.mBtnBean = bean;
+        String name = mBtnBean.getName();
+        setText(name);
+        setIcon(mBtnBean.getIcon());
         setIconTextGap(10);
         setHorizontalTextPosition(JToggleButton.TRAILING);
         setHorizontalAlignment(JToggleButton.LEADING);
-        setOpaque(false);
+        setOpaque(false);//设置不透明
         setBorder(new CompoundBorder(
                 new DefaultBorder(), new EmptyBorder(0, 0, 0, 0)));
         setFocusPainted(false);
         setContentAreaFilled(false);
-        setToolTipText(mFunctionBean.getDesc());
+        setToolTipText(mBtnBean.getDesc());
     }
 
     @Override
@@ -57,7 +57,7 @@ setText(funcName);
         } else {
             setBackground(UIManager.getColor("ToggleButton.background"));
             Color foreground = UIManager.getColor("ToggleButton.foreground");
-//            switch (mFunctionBean.getState()) {
+//            switch (mBtnBean.getState()) {
 //                case STOPPED: {
 //                    foreground = visitedForeground;
 //                    break;
@@ -71,8 +71,8 @@ setText(funcName);
         super.paintComponent(g);
     }
 
-    public FuncBean getmFunctionBean() {
-        return mFunctionBean;
+    public BtnBean getmBtnBean() {
+        return mBtnBean;
     }
 
     private static class DefaultBorder implements Border {
@@ -103,7 +103,6 @@ setText(funcName);
             }
         }
     }
-
 
 
 }
