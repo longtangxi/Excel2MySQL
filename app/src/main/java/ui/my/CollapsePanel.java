@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.sun.swingset3.utilities;
+package ui.my;
 
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.interpolation.PropertySetter;
@@ -53,7 +53,7 @@ import javax.swing.event.ChangeListener;
 /**
  * @author aim
  */
-public class CollapsiblePanel extends JPanel {
+public class CollapsePanel extends JPanel {
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 
@@ -70,7 +70,7 @@ public class CollapsiblePanel extends JPanel {
      *
      * @param child 子项
      */
-    public CollapsiblePanel(JComponent child) {
+    public CollapsePanel(JComponent child) {
         this(child, Orientation.VERTICAL);
     }
 
@@ -80,7 +80,7 @@ public class CollapsiblePanel extends JPanel {
      * @param child       子项
      * @param orientation 方向
      */
-    public CollapsiblePanel(JComponent child, Orientation orientation) {
+    public CollapsePanel(JComponent child, Orientation orientation) {
         this.orientation = orientation;
         this.child = child;
         setLayout(new BorderLayout());
@@ -96,7 +96,7 @@ public class CollapsiblePanel extends JPanel {
      * @param title   标题
      * @param tooltip 悬停提示
      */
-    public CollapsiblePanel(JComponent child, String title, String tooltip) {
+    public CollapsePanel(JComponent child, String title, String tooltip) {
         this(child, Orientation.VERTICAL, title, tooltip);
     }
 
@@ -106,7 +106,7 @@ public class CollapsiblePanel extends JPanel {
      * @param child 子项
      * @param title 标题
      */
-    public CollapsiblePanel(JComponent child, String title) {
+    public CollapsePanel(JComponent child, String title) {
         this(child, Orientation.VERTICAL, title, null);
     }
 
@@ -118,8 +118,8 @@ public class CollapsiblePanel extends JPanel {
      * @param title       标题
      * @param tooltip     悬停提示
      */
-    public CollapsiblePanel(JComponent child, Orientation orientation,
-                            String title, String tooltip) {
+    public CollapsePanel(JComponent child, Orientation orientation,
+                         String title, String tooltip) {
         this(child, orientation);
         add(createCollapseControl(title, tooltip),
                 orientation == Orientation.HORIZONTAL ?
@@ -134,8 +134,9 @@ public class CollapsiblePanel extends JPanel {
         expandCheckBox.setBorder(new EmptyBorder(0, 4, 0, 0));
         expandCheckBox.setToolTipText(tooltip);
         expandCheckBox.setHorizontalTextPosition(JCheckBox.RIGHT);
-        expandCheckBox.setSelectedIcon(new ArrowIcon(ArrowIcon.SOUTH));
-        expandCheckBox.setIcon(new ArrowIcon(ArrowIcon.EAST));
+        //TODO
+//        expandCheckBox.setSelectedIcon(new ArrowIcon(ArrowIcon.SOUTH));
+//        expandCheckBox.setIcon(new ArrowIcon(ArrowIcon.EAST));
         expandCheckBox.setSelected(isExpanded());
 
         expandCheckBox.addChangeListener(new CollapseListener());

@@ -9,6 +9,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.TextField;
@@ -32,6 +34,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import ui.model.FuncBean;
+import ui.my.CollapsePanel;
 import ui.my.GradientPanel;
 import ui.my.ToggleButton;
 import ui.my.Utils;
@@ -133,19 +136,41 @@ public class Home extends SingleFrameApplication {
      */
     private JScrollPane getLeftButtonPanel() {
 
-        JPanel panel = new JPanel();
-        panel.setBackground(Utils.deriveColorHSB(Colors.PANEL_BACKGROUND, 0, 0, -.06f));
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new CompoundBorder(new ChiselBorder(),new EmptyBorder(12,8,12,8)));
-        List<ToggleButton> buttons = getFuncButtons();
+        JPanel panel = new JPanel();//按钮主面板
+        GridBagLayout mainLayout = new GridBagLayout();
+        panel.setLayout(mainLayout);
+        GridBagConstraints mainConstraints = new GridBagConstraints();
+        mainConstraints.gridx = mainConstraints.gridy = 0;//索引置为0
+        mainConstraints.fill = GridBagConstraints.HORIZONTAL;//水平方向可扩大
+        mainConstraints.weightx = 1;
 
+        CollapsePanel collapsePanel;//折叠面板
+        JPanel categoryPanel = new JPanel();//类别Item面板
+        GridBagLayout categoryLayout = new GridBagLayout();
+        categoryPanel.setLayout(categoryLayout);//设置类别Item布局方式
+        GridBagConstraints categoryConstraints = new GridBagConstraints();
+        categoryConstraints.gridx = categoryConstraints.gridy = 0;
+        categoryConstraints.weightx = 1;
+        categoryConstraints.fill = GridBagConstraints.HORIZONTAL;
+
+        collapsePanel = new CollapsePanel(categoryPanel, "类别", "点击打开或者折叠");
+        collapsePanel.setBorder(new CompoundBorder(
+                new ChiselBorder(), new EmptyBorder(0, 0, 10, 0)));
+        collapsePanel.add(categoryPanel);
+        mainLayout.addLayoutComponent(collapsePanel,mainConstraints);
+        panel.add(collapsePanel);
+        mainConstraints.gridy++;
+        List<ToggleButton> buttons = getFuncButtons();
         for (ToggleButton btn : buttons) {
-            panel.add(btn);
+            categoryLayout.addLayoutComponent(btn, categoryConstraints);
+            categoryPanel.add(btn);
+            categoryConstraints.gridy++;
         }
-        JLabel jj = new JLabel("gg");
-        jj.setBorder(new EmptyBorder(0, 0, 0, 0));
-        jj.setBackground(Color.GREEN);
-        panel.add(jj);
+        panel.add(collapsePanel);
+        JPanel trailer = new JPanel();
+        mainConstraints.weighty = 1.0;//占据多余空间
+        mainLayout.addLayoutComponent(trailer, mainConstraints);
+        panel.add(trailer);
         return new JScrollPane(panel);
     }
 

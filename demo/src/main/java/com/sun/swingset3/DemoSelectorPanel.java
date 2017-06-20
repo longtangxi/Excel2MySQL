@@ -165,27 +165,29 @@ public class DemoSelectorPanel extends JPanel {
         cc.fill = GridBagConstraints.HORIZONTAL;
         CollapsiblePanel collapsePanel;
         for(Demo demo: demoSet) {
-            String category = demo.getCategory();
-            JPanel categoryPanel = categoryMap.get(category);
+            String category = demo.getCategory();//获取Demo的类别
+            JPanel categoryPanel = categoryMap.get(category);//获取该类型的JPanel
             if (categoryPanel == null) {
+                //如果该JPanel还不存在
                 // Create category collapsible panel
                 categoryPanel = new JPanel();
                 categoryGridbag = new GridBagLayout();
-                categoryPanel.setLayout(categoryGridbag);                
+                categoryPanel.setLayout(categoryGridbag);//设置类别JPanel的布局
                 collapsePanel = new CollapsiblePanel(categoryPanel, category, 
-                        "click to expand or contract category");
+                        "click to expand or contract category");//创建一个折叠JPanel
                 collapsePanels.add(collapsePanel);
-                collapsePanel.setBorder(categoryBorder);
-                categoryMap.put(category, categoryPanel);
-                gridbag.addLayoutComponent(collapsePanel, c);
-                selectorPanel.add(collapsePanel);
-                c.gridy++;
+                collapsePanel.setBorder(categoryBorder);//设置折叠JPanel的边框
+                categoryMap.put(category, categoryPanel);//将创建的类型JPanel添加至Map中
+                gridbag.addLayoutComponent(collapsePanel, c);//将布局参数应用于折叠JPanel上
+                selectorPanel.add(collapsePanel);//将该JPanel添加进主JPanel中
+                c.gridy++;//主布局垂向索引自加
             }
             DemoButton demoButton = new DemoButton(demo);
-            categoryGridbag.addLayoutComponent(demoButton, cc);
-            cc.gridy++;
+            categoryGridbag.addLayoutComponent(demoButton, cc);//将布局参数应用于Button上
+            cc.gridy++;//Button的布局参数垂向索引自加
+            categoryPanel.add(demoButton);//将Button添加进类型JPanel中
+
             group.add(demoButton);
-            categoryPanel.add(demoButton);
             if (buttonHeight == 0) {
                 buttonHeight = demoButton.getPreferredSize().height;
             }
