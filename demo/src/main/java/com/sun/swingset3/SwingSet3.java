@@ -646,8 +646,11 @@ public class SwingSet3 extends SingleFrameApplication  {
                 jcomponent.setComponentPopupMenu(popup);
             }
         }
-    }    
-    
+    }
+
+    /**
+     * Demo按钮的监听事件
+     */
     private class DemoSelectionListener implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent event) {
             if (event.getPropertyName().equals("selectedDemo")) {
