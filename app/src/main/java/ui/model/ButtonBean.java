@@ -39,10 +39,12 @@ import javax.swing.Icon;
  *
  * @author Amy Fowler
  */
-public class BtnBean {
+public class ButtonBean {
+
 
     public enum State {UNINITIALIZED, INITIALIZING, INITIALIZED, RUNNING, STOPPED, FAILED}
 
+    private State state;
     private static final String IMAGE_EXTENSIONS[] = {".gif", ".png", ".jpg"};
 
 
@@ -72,5 +74,26 @@ public class BtnBean {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public void startInitializing() {
+        setState(State.INITIALIZING);
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append(
+                "\nname:" + name
+                        + "\nicon:" + icon
+                        + "\nstate:" + state
+                        + "\ndesc:" + desc).toString();
     }
 }

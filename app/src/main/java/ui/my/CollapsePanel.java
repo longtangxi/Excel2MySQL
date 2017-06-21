@@ -123,6 +123,7 @@ public class CollapsePanel extends JPanel {
     public CollapsePanel(JComponent child, Orientation orientation,
                          String title, String tooltip) {
         this(child, orientation);
+        //添加折叠栏
         add(createCollapseControl(title, tooltip),
                 orientation == Orientation.HORIZONTAL ?
                         BorderLayout.WEST : BorderLayout.NORTH);
@@ -132,41 +133,37 @@ public class CollapsePanel extends JPanel {
     protected Component createCollapseControl(String title, String tooltip) {
         // Add upper panel to hold collapse control
         Box box = Box.createHorizontalBox();
-        expandCheckBox = new JCheckBox(title);
-        expandCheckBox.setBorder(new EmptyBorder(0, 4, 0, 0));
-        expandCheckBox.setToolTipText(tooltip);
-        expandCheckBox.setHorizontalTextPosition(JCheckBox.RIGHT);
-        //TODO
-//        expandCheckBox.setSelectedIcon(new ArrowIcon(ArrowIcon.SOUTH));
-//        expandCheckBox.setIcon(new ArrowIcon(ArrowIcon.EAST));
-        expandCheckBox.setSelected(isExpanded());
+        expandCheckBox = new JCheckBox(title);//设置标题
+        expandCheckBox.setBorder(new EmptyBorder(0, 4, 0, 0));//边框
+        expandCheckBox.setToolTipText(tooltip);//悬停提示
+        expandCheckBox.setHorizontalTextPosition(JCheckBox.RIGHT);//设置标题的位置
+        expandCheckBox.setSelectedIcon(new ArrowIcon(ArrowIcon.SOUTH));//创建一个向下的三角
+        expandCheckBox.setIcon(new ArrowIcon(ArrowIcon.EAST));//设置默认朝右的三角
+        expandCheckBox.setSelected(isExpanded());//根据展开状态设置图标
 
         expandCheckBox.addChangeListener(new CollapseListener());
         box.add(expandCheckBox);
-
         return box;
     }
 
     public void setExpanded(boolean expanded) {
-        Console.log("oldExpanded:"+this.expanded+"  expanded"+expanded);
         boolean oldExpanded = this.expanded;
         if (oldExpanded != expanded) {
             if (expandCheckBox != null) {
-                expandCheckBox.setSelected(expanded);
+                expandCheckBox.setSelected(expanded);//更改CheckBox的状态
             }
-            childPrefSize = child.getPreferredSize();
-            this.expanded = expanded;
-
+            childPrefSize =child.getPreferredSize();//获取Child的首选尺寸
+            this.expanded = expanded;//记录展开状态
             if (isShowing()) {
                 // only animate if currently showing
                 Animator animator = null;
                 if (orientation == Orientation.VERTICAL) {
-                    animator = new Animator(600, new PropertySetter(this, "collapseHeight",
+                    animator = new Animator(300, new PropertySetter(this, "collapseHeight",
                             expanded ? 0 : childPrefSize.height, expanded ? childPrefSize.height : 0));
 
                 }
                 if (orientation == Orientation.HORIZONTAL) {
-                    animator = new Animator(600, new PropertySetter(this, "collapseWidth",
+                    animator = new Animator(300, new PropertySetter(this, "collapseWidth",
                             expanded ? 0 : childPrefSize.width, expanded ? childPrefSize.width : 0));
                 }
                 animator.setStartDelay(10);
@@ -188,6 +185,7 @@ public class CollapsePanel extends JPanel {
 
     // intended only for animator, but must be public
     public void setCollapseHeight(int height) {
+        Console.log("height:"+height);
         panel.setPreferredSize(new Dimension(childPrefSize.width, height));
         child.revalidate();
         repaint();

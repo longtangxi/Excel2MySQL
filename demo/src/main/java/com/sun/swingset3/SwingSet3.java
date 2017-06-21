@@ -331,7 +331,7 @@ public class SwingSet3 extends SingleFrameApplication  {
         // Color palette algorithm courtesy of Jasper Potts
         Color controlColor = UIManager.getColor("control");
         
-	UIManager.put(CONTROL_VERY_LIGHT_SHADOW_KEY, 
+	    UIManager.put(CONTROL_VERY_LIGHT_SHADOW_KEY,
                 Utilities.deriveColorHSB(controlColor, 0, 0, -0.02f));
         UIManager.put(CONTROL_LIGHT_SHADOW_KEY, 
                 Utilities.deriveColorHSB(controlColor, 0, 0, -0.06f));
