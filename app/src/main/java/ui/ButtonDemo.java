@@ -39,7 +39,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -135,7 +134,7 @@ public class ButtonDemo extends JPanel {
         JButton button = new JButton();
         button.setText("Connect");
 //        button.setIcon(new ImageIcon(getClass().getResource("resources/images/earth_day.gif")));
-        button.setPressedIcon(new ImageIcon(getClass().getResource("resources/images/earth_night.gif")));
+//        button.setPressedIcon(new ImageIcon(getClass().getResource("resources/images/earth_night.gif")));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setVerticalTextPosition(JButton.BOTTOM);

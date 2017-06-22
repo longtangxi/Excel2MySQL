@@ -19,6 +19,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import ui.model.ButtonBean;
+import ui.panels.FunctionPanel;
 import ui.panels.LeftJPanel;
 
 import static java.awt.BorderLayout.CENTER;
@@ -42,8 +43,8 @@ public class Home extends SingleFrameApplication {
     private ButtonBean currentButtonBean;//当前被选中的按钮
     private JPanel centerJPanel;
     private JComponent containerHolder;
-    private JComponent currentContainerHolder;
-    private HashMap<String, JComponent> runningContainerCache = new HashMap<>();
+    private JComponent mCurrentFunctionPanel;
+    private HashMap<String, FunctionPanel> runningContainerCache = new HashMap<>();
     private final String TAG_CONTAINERHOLDER = "containerHolder";
     private final String TAG_CURRENT_BUTTON_BEAN = "currentButtonBean";
 
@@ -124,7 +125,7 @@ public class Home extends SingleFrameApplication {
         centerJPanel.setLayout(new BorderLayout());
         centerJPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         centerJPanel.setPreferredSize(new Dimension(DEMO_PANEL_WIDTH, DEMO_PANEL_HEIGHT));
-containerHolder.add(new ButtonDemo());
+        containerHolder.add(new ButtonDemo());
         centerJPanel.add(containerHolder);
 
 
@@ -146,23 +147,23 @@ containerHolder.add(new ButtonDemo());
             containerHolder.add(new JLabel("currentButtonBean == null"), CENTER);
         } else {
 
-            JComponent jLabel = runningContainerCache.get(buttonBean.getName());
-            if (jLabel == null) {
+            FunctionPanel panel =  runningContainerCache.get(buttonBean.getName());
+            if (panel == null) {
                 buttonBean.startInitializing();
-                jLabel = new JLabel(buttonBean.getName());
-                jLabel.setPreferredSize(new Dimension(100, 100));//TODO
-                runningContainerCache.put(buttonBean.getName(), jLabel);
+                panel = new FunctionPanel(buttonBean);
+                panel.setPreferredSize(new Dimension(100, 100));//TODO
+                runningContainerCache.put(buttonBean.getName(), panel);
             }
-            if (currentContainerHolder != null) {
-                containerHolder.remove(currentContainerHolder);
+            if (mCurrentFunctionPanel != null) {
+                containerHolder.remove(mCurrentFunctionPanel);
             }
-            currentContainerHolder = jLabel;
-            containerHolder.add(currentContainerHolder, CENTER);
+            mCurrentFunctionPanel = panel;
+            containerHolder.add(mCurrentFunctionPanel, CENTER);
             containerHolder.revalidate();
             containerHolder.repaint();
             //TODO
         }
-        firePropertyChange(TAG_CURRENT_BUTTON_BEAN, oldCurrentButtonBean, buttonBean);
+//        firePropertyChange(TAG_CURRENT_BUTTON_BEAN, oldCurrentButtonBean, buttonBean);
     }
 
 
