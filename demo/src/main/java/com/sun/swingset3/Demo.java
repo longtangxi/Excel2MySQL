@@ -105,7 +105,8 @@ public class Demo {
     private Component component;
     
     private State state;
-    
+
+
     private Exception failException;
     
     private PropertyChangeSupport pcs;

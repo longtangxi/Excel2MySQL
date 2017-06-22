@@ -39,10 +39,10 @@ public class LeftJPanel extends JPanel {
     private ButtonBean selectedButtonBean;//当前被选中的功能按钮
     public static final String TAG_SELECTED = "selectedButtonBean";
 
-    public LeftJPanel() {
+    public LeftJPanel(List<ButtonBean> buttonBeanList) {
         setLayout(new BorderLayout());
         add(getLeftTitlePanel(), BorderLayout.NORTH);///左侧功能列表标题JPanel添加至左侧功能列表JPanel
-        add(getLeftButtonPanel(), BorderLayout.CENTER);
+        add(getLeftButtonPanel(buttonBeanList), BorderLayout.CENTER);
         setBorder(new MatteBorder(0, 0, 0, 1, Colors.CONTROL_SHADOW));
         addPropertyChangeListener(evt -> {
             if (evt.getPropertyName().equals(TAG_SELECTED)) {
@@ -104,7 +104,7 @@ public class LeftJPanel extends JPanel {
      *
      * @return
      */
-    private JScrollPane getLeftButtonPanel() {
+    private JScrollPane getLeftButtonPanel(List<ButtonBean> buttonBeanList) {
 
         JPanel panel = new JPanel();//按钮主面板
         GridBagLayout mainLayout = new GridBagLayout();
@@ -132,20 +132,16 @@ public class LeftJPanel extends JPanel {
         mainLayout.addLayoutComponent(collapsePanel, mainConstraints);
         panel.add(collapsePanel);
         mainConstraints.gridy++;
+        for (ButtonBean bean : buttonBeanList) {
+            FunctionButton button = new FunctionButton(bean);
+            button.addActionListener(e -> {
+                FunctionButton btn = (FunctionButton) e.getSource();
+                setSelectedButtonBean(btn.getmButtonBean());
 
-        List<FunctionButton> buttons = getFuncButtons();
-        for (FunctionButton btn : buttons) {
-
-            btn.addActionListener(e -> {
-                FunctionButton button = (FunctionButton) e.getSource();
-                setSelectedButtonBean(button.getmButtonBean());
-//
-//                panel.updateUI();
-//                panel.revalidate();
             });
-            categoryLayout.addLayoutComponent(btn, categoryConstraints);
+            categoryLayout.addLayoutComponent(button, categoryConstraints);
             categoryConstraints.gridy++;
-            categoryPanel.add(btn);
+            categoryPanel.add(button);
 
         }
         panel.add(collapsePanel);

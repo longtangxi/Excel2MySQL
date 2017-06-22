@@ -31,7 +31,13 @@
 
 package ui.model;
 
+import java.awt.Component;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 import javax.swing.Icon;
+
+import ui.ButtonDemo;
 
 /**
  * Wrapper class which encapsulates a GUI component to be displayed
@@ -42,11 +48,64 @@ import javax.swing.Icon;
 public class ButtonBean {
 
 
+
+    private Component component;
+
+    private Exception failException;
     public enum State {UNINITIALIZED, INITIALIZING, INITIALIZED, RUNNING, STOPPED, FAILED}
 
     private State state;
     private static final String IMAGE_EXTENSIONS[] = {".gif", ".png", ".jpg"};
 
+    private PropertyChangeSupport mPropertyChangeSupport;
+
+    public ButtonBean() {
+        mPropertyChangeSupport = new PropertyChangeSupport(this);
+    }
+
+    public Component createDemoComponent() {
+        Component component = null;
+
+        component = new ButtonDemo();
+        return component;
+    }
+    void setDemoComponent(Component component) {
+
+
+    }
+    /**
+     * 初始化
+     */
+    private void init() {
+        setState(State.INITIALIZING);
+//        try {
+////            Method initMethod = JPanelClass.getMethod("init", (Class[])null);
+////            initMethod.invoke(component, (Object[])null);
+//        } catch (NoSuchMethodException nsme) {
+//            // okay, no init method exists
+//        } catch (IllegalAccessException iae) {
+////            SwingSet3.logger.log(Level.SEVERE, "unable to init demo: "+ JPanelClass.getName(), iae);
+//            failException = iae;
+//            setState(State.FAILED);
+//        } catch (java.lang.reflect.InvocationTargetException ite) {
+////            SwingSet3.logger.log(Level.SEVERE, "init method failed for demo: "+ JPanelClass.getName(), ite);
+//            failException = ite;
+//            setState(State.FAILED);
+//        } catch (NullPointerException npe) {
+////            SwingSet3.logger.log(Level.SEVERE, "init method called before demo was instantiated: "
+////                    + JPanelClass.getName(), npe);
+//            failException = npe;
+//            setState(State.FAILED);
+//        }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener pcl) {
+        mPropertyChangeSupport.addPropertyChangeListener(pcl);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener pcl) {
+        mPropertyChangeSupport.removePropertyChangeListener(pcl);
+    }
 
     private String name;
     private Icon icon;

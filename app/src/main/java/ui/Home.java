@@ -8,9 +8,9 @@ import org.jdesktop.application.View;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -29,7 +29,7 @@ import static java.awt.BorderLayout.CENTER;
 
 public class Home extends SingleFrameApplication {
 
-    private ButtonBean selectedButtonBean;//当前被选中的按钮
+
     private JPanel mainPanel;
 
     public static final int MAIN_FRAME_HEIGHT = 640;
@@ -39,12 +39,15 @@ public class Home extends SingleFrameApplication {
     public static final int DEMO_PANEL_HEIGHT = 400;
     public static final int DEMO_PANEL_WIDTH = MAIN_FRAME_WIDTH - LEFT_PANEL_WIDTH;
 
-    private ButtonBean currentButtonBean;
+    private ButtonBean currentButtonBean;//当前被选中的按钮
     private JPanel centerJPanel;
     private JComponent containerHolder;
     private JComponent currentContainerHolder;
     private HashMap<String, JComponent> runningContainerCache = new HashMap<>();
     private final String TAG_CONTAINERHOLDER = "containerHolder";
+    private final String TAG_CURRENT_BUTTON_BEAN = "currentButtonBean";
+
+    private List<ButtonBean> buttonList = new ArrayList<>();
 
     @Override
     protected void initialize(String[] args) {
@@ -54,8 +57,20 @@ public class Home extends SingleFrameApplication {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        setFunctionList();
         runningContainerCache = new HashMap<>();
-        setContainerHolder(new JLabel("初始"));
+        setContainerHolder(new JPanel());
+    }
+
+    private void setFunctionList() {
+        String[] names = {"主页", "图表", "数据库"};
+        String[] descs = {"主要功能界面", "生成各种统计图", "数据库的导入导出"};
+        for (int i = 0; i < names.length; i++) {
+            ButtonBean bean = new ButtonBean();
+            bean.setName(names[i]);
+            bean.setDesc(descs[i]);
+            buttonList.add(bean);
+        }
     }
 
     private void setContainerHolder(JComponent containerHolder) {
@@ -95,14 +110,13 @@ public class Home extends SingleFrameApplication {
 //        topPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 ////        mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        JPanel leftJPanel = new LeftJPanel();
+        JPanel leftJPanel = new LeftJPanel(buttonList);
         leftJPanel.setPreferredSize(new Dimension(LEFT_PANEL_WIDTH, MAIN_FRAME_HEIGHT));
-        leftJPanel.addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (evt.getPropertyName().equals(LeftJPanel.TAG_SELECTED)){
-                    setCurrentFunction((ButtonBean) evt.getNewValue());
-                }
+        leftJPanel.addPropertyChangeListener(evt -> {
+            //点击功能键按钮会触发
+            if (evt.getPropertyName().equals(LeftJPanel.TAG_SELECTED)) {
+                //记录当前所选功能
+                setCurrentFunction((ButtonBean) evt.getNewValue());
             }
         });
         mainPanel.add(leftJPanel, BorderLayout.WEST);
@@ -110,7 +124,9 @@ public class Home extends SingleFrameApplication {
         centerJPanel.setLayout(new BorderLayout());
         centerJPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         centerJPanel.setPreferredSize(new Dimension(DEMO_PANEL_WIDTH, DEMO_PANEL_HEIGHT));
-        centerJPanel.add(new JLabel("测试测试测试测试测试测试测试"));
+containerHolder.add(new ButtonDemo());
+        centerJPanel.add(containerHolder);
+
 
         //创建中心内容布局
         mainPanel.add(centerJPanel, BorderLayout.CENTER);
@@ -120,36 +136,34 @@ public class Home extends SingleFrameApplication {
 
 
     private void setCurrentFunction(ButtonBean buttonBean) {
-        Console.log("setCurrentFunction:"+buttonBean.toString());
         if (buttonBean == currentButtonBean) {
             return;
         }
         ButtonBean oldCurrentButtonBean = currentButtonBean;
         currentButtonBean = buttonBean;
-        if (currentButtonBean != null) {
-            JComponent jComponent = runningContainerCache.get(buttonBean.getName());
-            if (jComponent == null) {
-                currentButtonBean.startInitializing();
-                jComponent = new JLabel(currentButtonBean.getName());
-                jComponent.setPreferredSize(new Dimension(100, 100));//TODO
-                runningContainerCache.put(currentButtonBean.getName(), jComponent);
+        Console.log("oldBean:" + oldCurrentButtonBean.getName() + "  newBean:" + currentButtonBean.getName() + " containerHolder的内容:" + containerHolder.getComponentCount());
+        if (buttonBean == null) {
+            containerHolder.add(new JLabel("currentButtonBean == null"), CENTER);
+        } else {
+            Console.log("buttonBean:" + buttonBean.getName());
+            JComponent jLabel = runningContainerCache.get(buttonBean.getName());
+            if (jLabel == null) {
+                buttonBean.startInitializing();
+                jLabel = new JLabel(buttonBean.getName());
+                jLabel.setPreferredSize(new Dimension(100, 100));//TODO
+                runningContainerCache.put(buttonBean.getName(), jLabel);
             }
-            containerHolder.remove(currentContainerHolder);
-            currentContainerHolder = jComponent;
+            if (currentContainerHolder != null) {
+                containerHolder.remove(currentContainerHolder);
+            }
+            currentContainerHolder = jLabel;
             containerHolder.add(currentContainerHolder, CENTER);
             containerHolder.revalidate();
             containerHolder.repaint();
-            getMainFrame().validate();
             //TODO
         }
-        if (currentButtonBean == null) {
-            containerHolder.add(new JLabel("currentButtonBean == null"), CENTER);
-        }
-
-//        firePropertyChange("currentButtonBean", oldCurrentButtonBean, currentButtonBean);
+        firePropertyChange(TAG_CURRENT_BUTTON_BEAN, oldCurrentButtonBean, buttonBean);
     }
-
-
 
 
     public static void main(String[] args) {
