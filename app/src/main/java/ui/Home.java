@@ -145,7 +145,7 @@ containerHolder.add(new ButtonDemo());
         if (buttonBean == null) {
             containerHolder.add(new JLabel("currentButtonBean == null"), CENTER);
         } else {
-            Console.log("buttonBean:" + buttonBean.getName());
+
             JComponent jLabel = runningContainerCache.get(buttonBean.getName());
             if (jLabel == null) {
                 buttonBean.startInitializing();
