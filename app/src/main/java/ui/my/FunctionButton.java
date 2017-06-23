@@ -1,7 +1,5 @@
 package ui.my;
 
-import com.xiaoleilu.hutool.lang.Console;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -56,8 +54,6 @@ private final String TAG = FunctionButton.class.getSimpleName()+">>>";
     @Override
     protected void paintComponent(Graphics g) {
         if (isSelected()) {
-
-            Console.log(TAG+mButtonBean.getName()+"被选中，更新背景");
             setBackground(Colors.TREE_SELECTIONBACKGROUND);
             g.setColor(Colors.TREE_SELECTIONBACKGROUND);
             Dimension size = getSize();
