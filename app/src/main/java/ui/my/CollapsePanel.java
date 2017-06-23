@@ -31,8 +31,6 @@
 
 package ui.my;
 
-import com.xiaoleilu.hutool.lang.Console;
-
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.interpolation.PropertySetter;
 
@@ -185,7 +183,6 @@ public class CollapsePanel extends JPanel {
 
     // intended only for animator, but must be public
     public void setCollapseHeight(int height) {
-        Console.log("height:"+height);
         panel.setPreferredSize(new Dimension(childPrefSize.width, height));
         child.revalidate();
         repaint();

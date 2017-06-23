@@ -3,6 +3,7 @@ package ui.factory;
 import java.awt.Color;
 
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 /**
  * Created by 87627 on 2017/6/21.
@@ -11,6 +12,7 @@ public class BorderFactory {
     private static ChiselBorder mChiselBorder;
     private static RoundedBorder mRoundedBorder;
     private static RoundedTitleBorder mRoundedTitleBorder;
+    private static EmptyBorder mEmptyBorder;
 
     public static final Border getChiselBorder() {
         if (mChiselBorder == null) {
@@ -31,6 +33,13 @@ public class BorderFactory {
             mRoundedTitleBorder = new RoundedTitleBorder(title, firstColor, endColor);
         }
         return mRoundedTitleBorder;
+    }
+
+    public static final Border getEmptyBorder() {
+        if (mEmptyBorder == null) {
+            mEmptyBorder = new EmptyBorder(0, 0, 0, 0);
+        }
+        return mEmptyBorder;
     }
 
 

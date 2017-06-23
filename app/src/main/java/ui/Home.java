@@ -15,12 +15,16 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import ui.factory.BorderFactory;
 import ui.model.ButtonBean;
+import ui.my.AnimatingSplitPane;
 import ui.panels.FunctionPanel;
 import ui.panels.LeftJPanel;
+import ui.test.FirstFunctionPanel;
 
 import static java.awt.BorderLayout.CENTER;
 
@@ -30,6 +34,7 @@ import static java.awt.BorderLayout.CENTER;
 
 public class Home extends SingleFrameApplication {
 
+    private final String TAG = Home.class.getSimpleName() + ">>>";
 
     private JPanel mainPanel;
 
@@ -41,14 +46,16 @@ public class Home extends SingleFrameApplication {
     public static final int DEMO_PANEL_WIDTH = MAIN_FRAME_WIDTH - LEFT_PANEL_WIDTH;
 
     private ButtonBean currentButtonBean;//当前被选中的按钮
-    private JPanel centerJPanel;
-    private JComponent containerHolder;
-    private JComponent mCurrentFunctionPanel;
-    private HashMap<String, FunctionPanel> runningContainerCache = new HashMap<>();
-    private final String TAG_CONTAINERHOLDER = "containerHolder";
+    private JPanel contentJPanel = new JPanel();//盛裝内容的面板
+    private JComponent mCurrentFunctionPanel;//当前所选的功能面板
+    private HashMap<String, FunctionPanel> runningContainerCache = new HashMap<>();//存储功能名称-功能面板
+
+    private final String TAG_CONTAINERHOLDER = "contentJPanel";
     private final String TAG_CURRENT_BUTTON_BEAN = "currentButtonBean";
 
     private List<ButtonBean> buttonList = new ArrayList<>();
+
+    private AnimatingSplitPane contentHorizonalSpliteJPanel;//分割面板，用于盛装功能面板和描述面板
 
     @Override
     protected void initialize(String[] args) {
@@ -60,7 +67,7 @@ public class Home extends SingleFrameApplication {
         }
         setFunctionList();
         runningContainerCache = new HashMap<>();
-        setContainerHolder(new JPanel());
+        setContentJPanel(new JPanel());
     }
 
     private void setFunctionList() {
@@ -74,11 +81,6 @@ public class Home extends SingleFrameApplication {
         }
     }
 
-    private void setContainerHolder(JComponent containerHolder) {
-        JComponent oldContainerHolder = this.containerHolder;
-        this.containerHolder = containerHolder;
-        firePropertyChange(TAG_CONTAINERHOLDER, oldContainerHolder, containerHolder);
-    }
 
     @Override
     protected void startup() {
@@ -93,6 +95,7 @@ public class Home extends SingleFrameApplication {
      * @return
      */
     private JComponent createMainPanel() {
+
         mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -110,57 +113,107 @@ public class Home extends SingleFrameApplication {
 //
 //        topPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 ////        mainPanel.add(topPanel, BorderLayout.NORTH);
-
+        /*——————左侧功能按钮面板——————*/
         JPanel leftJPanel = new LeftJPanel(buttonList);
         leftJPanel.setPreferredSize(new Dimension(LEFT_PANEL_WIDTH, MAIN_FRAME_HEIGHT));
         leftJPanel.addPropertyChangeListener(evt -> {
             //点击功能键按钮会触发
+            Console.log(TAG + "功能键按钮点击事件已触发");
             if (evt.getPropertyName().equals(LeftJPanel.TAG_SELECTED)) {
+                Console.log(TAG + "并且propertyName：" + LeftJPanel.TAG_SELECTED);
                 //记录当前所选功能
                 setCurrentFunction((ButtonBean) evt.getNewValue());
             }
         });
         mainPanel.add(leftJPanel, BorderLayout.WEST);
-        centerJPanel = new JPanel();
+        /*——————左侧功能按钮面板——————*/
+
+        /*——————右侧功能界面面板——————*/
+        contentHorizonalSpliteJPanel = new AnimatingSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        contentHorizonalSpliteJPanel.setBorder(BorderFactory.getEmptyBorder());
+        mainPanel.add(contentHorizonalSpliteJPanel, BorderLayout.CENTER);
+        JPanel centerJPanel = new JPanel();
         centerJPanel.setLayout(new BorderLayout());
         centerJPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         centerJPanel.setPreferredSize(new Dimension(DEMO_PANEL_WIDTH, DEMO_PANEL_HEIGHT));
-        containerHolder.add(new ButtonDemo());
-        centerJPanel.add(containerHolder);
 
+        centerJPanel.add(contentJPanel);
+        contentHorizonalSpliteJPanel.setLeftComponent(centerJPanel);
+        mCurrentFunctionPanel = contentJPanel;
+        centerJPanel.add(mCurrentFunctionPanel, BorderLayout.CENTER);
 
-        //创建中心内容布局
-        mainPanel.add(centerJPanel, BorderLayout.CENTER);
+        JPanel descJPanel = new JPanel();
+        descJPanel.add(new JLabel("用于描述的窗口"));
+        descJPanel.setMinimumSize(new Dimension(50, 50));
+        contentHorizonalSpliteJPanel.setRightComponent(descJPanel);
+        /*——————右侧功能界面面板——————*/
+
 
         return mainPanel;
     }
 
+    /**
+     * 更新内容面板
+     *
+     * @param contentJPanel
+     */
+    private void setContentJPanel(JPanel contentJPanel) {
+        JPanel oldContentJPanel = this.contentJPanel;
 
+        this.contentJPanel = contentJPanel;
+
+        firePropertyChange(TAG_CONTAINERHOLDER, oldContentJPanel, contentJPanel);
+    }
+
+    /**
+     * 选择某个功能时，调用此方法
+     * 根据传递的实体类生成对应的内容面板
+     * 更新界面
+     *
+     * @param buttonBean
+     */
     private void setCurrentFunction(ButtonBean buttonBean) {
         if (buttonBean == currentButtonBean) {
             return;
         }
         ButtonBean oldCurrentButtonBean = currentButtonBean;
         currentButtonBean = buttonBean;
-        Console.log("oldBean:" + oldCurrentButtonBean.getName() + "  newBean:" + currentButtonBean.getName() + " containerHolder的内容:" + containerHolder.getComponentCount());
+        Console.log("oldBean:" + oldCurrentButtonBean.getName() + "  newBean:" + currentButtonBean.getName() + " containerHolder的内容:" + contentJPanel.getComponentCount());
         if (buttonBean == null) {
-            containerHolder.add(new JLabel("currentButtonBean == null"), CENTER);
+            contentJPanel.add(mCurrentFunctionPanel, CENTER);
         } else {
 
-            FunctionPanel panel =  runningContainerCache.get(buttonBean.getName());
+            FunctionPanel panel = runningContainerCache.get(buttonBean.getName());
             if (panel == null) {
-                buttonBean.startInitializing();
-                panel = new FunctionPanel(buttonBean);
-                panel.setPreferredSize(new Dimension(100, 100));//TODO
-                runningContainerCache.put(buttonBean.getName(), panel);
+                Console.log(TAG + "缓存的panel为空");
+                if (buttonBean.getName().equals("主页")) {
+                    Console.log(TAG + "新建主页panel");
+                    panel = new FirstFunctionPanel(buttonBean);
+                    runningContainerCache.put(buttonBean.getName(), panel);
+                } else if (buttonBean.getName().equals("图表")) {
+
+                    Console.log(TAG + "新建图表panel");
+                    panel = new FirstFunctionPanel(buttonBean);
+                    runningContainerCache.put(buttonBean.getName(), panel);
+                } else if (buttonBean.getName().equals("数据库")) {
+
+                    Console.log(TAG + "新建数据库panel");
+                    panel = new FirstFunctionPanel(buttonBean);
+                    runningContainerCache.put(buttonBean.getName(), panel);
+                }
+//                buttonBean.startInitializing();
+//                panel = new FunctionPanel(buttonBean);
+//                panel.setPreferredSize(new Dimension(100, 100));//TODO
+//                runningContainerCache.put(buttonBean.getName(), panel);
             }
-            if (mCurrentFunctionPanel != null) {
-                containerHolder.remove(mCurrentFunctionPanel);
+            if (mCurrentFunctionPanel != null && panel != mCurrentFunctionPanel) {
+                Console.log(TAG + "当前panel不为空，开始移除");
+                contentJPanel.remove(mCurrentFunctionPanel);
             }
             mCurrentFunctionPanel = panel;
-            containerHolder.add(mCurrentFunctionPanel, CENTER);
-            containerHolder.revalidate();
-            containerHolder.repaint();
+            contentJPanel.add(mCurrentFunctionPanel, CENTER);
+            contentJPanel.revalidate();
+            contentJPanel.repaint();
             //TODO
         }
 //        firePropertyChange(TAG_CURRENT_BUTTON_BEAN, oldCurrentButtonBean, buttonBean);

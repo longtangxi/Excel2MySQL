@@ -21,7 +21,6 @@ import javax.swing.UIManager;
 import ui.factory.BorderFactory;
 import ui.model.ButtonBean;
 import ui.my.Utils;
-import ui.resources.Colors;
 
 /**
  * Created by ty on 2017/6/22.
@@ -210,7 +209,7 @@ public class FunctionPanel extends JXPanel {
         }
 
         private void applyDefaults() {
-            setBorder(BorderFactory.getRoundedTitleBorder(functionName, Colors.TOGGLEBUTTON_BACKGROUND, Colors.TOGGLEBUTTON_FOREGROUND));
+//            setBorder(BorderFactory.getRoundedTitleBorder(functionName, Colors.TOGGLEBUTTON_BACKGROUND, Colors.TOGGLEBUTTON_FOREGROUND));
 
             setFont(UIManager.getFont("titleFont"));
             Color bg = Utils.deriveColorHSB(

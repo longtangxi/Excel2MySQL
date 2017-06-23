@@ -1,5 +1,7 @@
 package ui.my;
 
+import com.xiaoleilu.hutool.lang.Console;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -20,7 +22,7 @@ import ui.resources.Colors;
  */
 
 public class FunctionButton extends JToggleButton {
-
+private final String TAG = FunctionButton.class.getSimpleName()+">>>";
     private ButtonBean mButtonBean;
 
     Color visitedForeground = new Color(100, 100, 150);
@@ -47,12 +49,15 @@ public class FunctionButton extends JToggleButton {
     public void updateUI() {
         super.updateUI();
         // some look and feels replace our border, so take it back
-        setBorder(new DefaultBorder());
+        setBorder(new CompoundBorder(
+                new DefaultBorder(), new EmptyBorder(0, 0, 0, 0)));
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         if (isSelected()) {
+
+            Console.log(TAG+mButtonBean.getName()+"被选中，更新背景");
             setBackground(Colors.TREE_SELECTIONBACKGROUND);
             g.setColor(Colors.TREE_SELECTIONBACKGROUND);
             Dimension size = getSize();

@@ -1,7 +1,5 @@
 package ui.panels;
 
-import com.xiaoleilu.hutool.lang.Console;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -10,6 +8,7 @@ import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -47,7 +46,6 @@ public class LeftJPanel extends JPanel {
         addPropertyChangeListener(evt -> {
             if (evt.getPropertyName().equals(TAG_SELECTED)) {
                 ButtonBean bean = (ButtonBean) evt.getNewValue();
-                Console.log("当前选择了：" + bean.getName());
                 setSelectedButtonBean(bean);
             }
         });
@@ -132,6 +130,7 @@ public class LeftJPanel extends JPanel {
         mainLayout.addLayoutComponent(collapsePanel, mainConstraints);
         panel.add(collapsePanel);
         mainConstraints.gridy++;
+        ButtonGroup buttonGroup = new ButtonGroup();//将ToggleButton归为一组，只能选取一个
         for (ButtonBean bean : buttonBeanList) {
             FunctionButton button = new FunctionButton(bean);
             button.addActionListener(e -> {
@@ -139,6 +138,7 @@ public class LeftJPanel extends JPanel {
                 setSelectedButtonBean(btn.getmButtonBean());
 
             });
+            buttonGroup.add(button);
             categoryLayout.addLayoutComponent(button, categoryConstraints);
             categoryConstraints.gridy++;
             categoryPanel.add(button);
